@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { generateQuiz } from "../src/quiz.js";
 import type { QuizConfig } from "../src/types.js";
 
@@ -35,7 +35,7 @@ describe("generateQuiz()", () => {
     };
     const result = generateQuiz(config);
     if (result.ok) {
-      // biome-ignore lint/security/noEval: intentional JSFuck evaluation test
+      // biome-ignore lint/security/noGlobalEval: intentional JSFuck evaluation test
       const evaluated = String(eval(result.question.expression));
       expect(evaluated).toBe(result.question.answer);
     }

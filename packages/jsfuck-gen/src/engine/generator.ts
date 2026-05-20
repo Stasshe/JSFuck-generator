@@ -1,16 +1,9 @@
-import type {
-  GeneratorConfig,
-  GenerateResult,
-  GeneratedPart,
-} from "../types.js";
-import { ALL_PATTERNS } from "../patterns/index.js";
-import { segmentDP } from "./dp.js";
 import { computeActualDifficulty } from "../evaluator.js";
+import { ALL_PATTERNS } from "../patterns/index.js";
+import type { GeneratedPart, GenerateResult, GeneratorConfig } from "../types.js";
+import { segmentDP } from "./dp.js";
 
-export function generate(
-  input: string,
-  config: GeneratorConfig,
-): GenerateResult {
+export function generate(input: string, config: GeneratorConfig): GenerateResult {
   if (input.length === 0) {
     return {
       ok: true,
@@ -63,5 +56,6 @@ export function generate(
 }
 
 function partsToExpression(parts: GeneratedPart[]): string {
-  return parts.map((p) => p.pattern.expression).join("+");
+  // Wrap each part in parens to prevent ++ misparse when expressions start with +
+  return parts.map((p) => `(${p.pattern.expression})`).join("+");
 }

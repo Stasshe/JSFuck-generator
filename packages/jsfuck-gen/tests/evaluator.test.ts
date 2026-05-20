@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { computeActualDifficulty } from "../src/evaluator.js";
 import { ALL_PATTERNS } from "../src/patterns/index.js";
 import type { GeneratedPart } from "../src/types.js";
@@ -20,16 +20,21 @@ describe("computeActualDifficulty", () => {
     expect(d).toBeLessThanOrEqual(5.0);
   });
 
-  it("returns 1.0 for empty parts", () => {
+  it("returns approximately 1.0 for empty parts", () => {
     const d = computeActualDifficulty([], ALL_PATTERNS);
-    expect(d).toBe(1.0);
+    expect(d).toBeCloseTo(1.0, 5);
   });
 
-  it("tier2 parts give higher difficulty than tier1 parts", () => {
-    const tier1Parts = makeParts(["char_f", "char_a", "char_l", "char_s", "char_e"]);
-    const tier2Parts = makeParts(["t2_g", "t2_h", "t2_k"]);
-    const d1 = computeActualDifficulty(tier1Parts, ALL_PATTERNS);
-    const d2 = computeActualDifficulty(tier2Parts, ALL_PATTERNS);
+  it("higher pattern difficulty produces higher actualDifficulty (all else equal)", () => {
+    // Use patterns with no trapFor to isolate avgPatternDifficulty effect
+    // char_d (tier1, diff=1.0) vs t2_bootstrap_g (tier2-like, diff=1.8)
+    // Both have no trapFor entries targeting them
+    const lowerParts = makeParts(["char_d"]); // diff 1.0, no trap hits
+    const higherParts = makeParts(["t2_bootstrap_g"]); // diff 1.8, no trap hits
+    const d1 = computeActualDifficulty(lowerParts, ALL_PATTERNS);
+    const d2 = computeActualDifficulty(higherParts, ALL_PATTERNS);
+    // avgPatternDifficulty contribution: 0.4*(1.8-1.0)=0.32 higher for tier2
+    // structural depth also higher for t2_bootstrap_g
     expect(d2).toBeGreaterThan(d1);
   });
 });

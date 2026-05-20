@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { letterExpr, TOSTRING_KEY, BASE36, numExpr, _g, STR_CTOR_FN_STR, FILL_FN_STR, CONSTR_KEY } from "./builder.js";
+import { _g, _S_upper, FILL_FN_STR, letterExpr, STR_CTOR_FN_STR } from "./builder.js";
 
 // Tier 2: difficulty 1.5~2.5
 // All 26 lowercase letters via (n).toString(36)
@@ -9,9 +9,18 @@ import { letterExpr, TOSTRING_KEY, BASE36, numExpr, _g, STR_CTOR_FN_STR, FILL_FN
 // g enables building "toString" key, enabling all toString(36) letters
 
 const TIER2_REQUIRES = [
-  "char_f", "char_i", "char_l", "char_c", "char_o",
-  "char_n", "char_s", "char_t", "char_r", "char_u",
-  "t2_bootstrap_g", "t2_S_upper",
+  "char_f",
+  "char_i",
+  "char_l",
+  "char_c",
+  "char_o",
+  "char_n",
+  "char_s",
+  "char_t",
+  "char_r",
+  "char_u",
+  "t2_bootstrap_g",
+  "t2_S_upper",
 ];
 
 // letter codes: a=10, b=11, ..., z=35
@@ -51,7 +60,18 @@ const G_PATTERN: Pattern = {
   cost: G_EXPR.length,
   tags: ["tier2", "bootstrap"],
   trapFor: [],
-  requires: ["char_f", "char_i", "char_l", "char_c", "char_o", "char_n", "char_s", "char_t", "char_r", "char_u"],
+  requires: [
+    "char_f",
+    "char_i",
+    "char_l",
+    "char_c",
+    "char_o",
+    "char_n",
+    "char_s",
+    "char_t",
+    "char_r",
+    "char_u",
+  ],
   description: '"function String(){[native code]}"[14] — g (bootstrap for toString)',
 };
 
@@ -67,14 +87,25 @@ const S_UPPER_PATTERN: Pattern = {
   cost: S_UPPER_EXPR.length,
   tags: ["tier2", "bootstrap", "uppercase"],
   trapFor: ["char_s"],
-  requires: ["char_f", "char_i", "char_l", "char_c", "char_o", "char_n", "char_s", "char_t", "char_r", "char_u"],
+  requires: [
+    "char_f",
+    "char_i",
+    "char_l",
+    "char_c",
+    "char_o",
+    "char_n",
+    "char_s",
+    "char_t",
+    "char_r",
+    "char_u",
+  ],
   description: '"function String(){[native code]}"[9] — uppercase S',
 };
 
 // 'v' from fill fn string index 23
 const V_EXPR = `${FILL_FN_STR}[23]`;
 const V_PATTERN: Pattern = {
-  id: "t2_v",
+  id: "t2_v_fill",
   output: "v",
   expression: V_EXPR,
   kind: "jsfuck",

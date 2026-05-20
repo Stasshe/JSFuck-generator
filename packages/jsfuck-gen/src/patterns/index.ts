@@ -49,9 +49,7 @@ export function getPatterns(filter?: PatternFilter): Pattern[] {
     if (max !== undefined) result = result.filter((p) => p.difficulty <= max);
   }
   if (filter?.tags !== undefined && filter.tags.length > 0) {
-    result = result.filter((p) =>
-      filter.tags!.every((tag) => p.tags.includes(tag)),
-    );
+    result = result.filter((p) => filter.tags!.every((tag) => p.tags.includes(tag)));
   }
 
   return result;
@@ -60,9 +58,7 @@ export function getPatterns(filter?: PatternFilter): Pattern[] {
 export function getSiblings(patternId: string): Pattern[] {
   const target = ALL_PATTERNS.find((p) => p.id === patternId);
   if (target === undefined) return [];
-  return ALL_PATTERNS.filter(
-    (p) => p.output === target.output && p.id !== patternId,
-  );
+  return ALL_PATTERNS.filter((p) => p.output === target.output && p.id !== patternId);
 }
 
 export { ALL_PATTERNS };

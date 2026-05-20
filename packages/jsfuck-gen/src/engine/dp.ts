@@ -1,5 +1,5 @@
-import type { Pattern, GeneratedPart, GeneratorConfig } from "../types.js";
-import { selectPattern, effectiveCost } from "./selector.js";
+import type { GeneratedPart, GeneratorConfig, Pattern } from "../types.js";
+import { effectiveCost, selectPattern } from "./selector.js";
 
 const MAX_SEG = 8;
 

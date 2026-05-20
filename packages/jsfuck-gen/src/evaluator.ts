@@ -1,5 +1,4 @@
-import type { GeneratedPart, Difficulty } from "./types.js";
-import type { Pattern } from "./types.js";
+import type { Difficulty, GeneratedPart, Pattern } from "./types.js";
 
 // Weights from spec section 5.1
 const W_AVG_DIFFICULTY = 0.4;

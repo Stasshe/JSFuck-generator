@@ -1,6 +1,6 @@
-import type { QuizConfig, QuizResult, GeneratorConfig } from "./types.js";
 import { generate } from "./engine/generator.js";
 import { getPatterns } from "./patterns/index.js";
+import type { GeneratorConfig, QuizConfig, QuizResult } from "./types.js";
 
 const MAX_QUIZ_ATTEMPTS = 10;
 
@@ -49,12 +49,7 @@ export function generateQuiz(config: QuizConfig): QuizResult {
   };
 
   for (let attempt = 0; attempt < MAX_QUIZ_ATTEMPTS; attempt++) {
-    const quizStr = buildQuizString(
-      targetLen,
-      config.difficulty,
-      config.allowLiteral,
-      rng,
-    );
+    const quizStr = buildQuizString(targetLen, config.difficulty, config.allowLiteral, rng);
     const result = generate(quizStr, genConfig);
 
     if (!result.ok) continue;

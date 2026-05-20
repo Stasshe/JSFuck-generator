@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { ALL_PATTERNS } from "../src/patterns/index.js";
 import type { Pattern } from "../src/types.js";
 
@@ -84,7 +84,10 @@ describe("Pattern dictionary integrity", () => {
     const covered = new Set(ALL_PATTERNS.map((p) => p.output));
     for (let code = 0x20; code <= 0x7e; code++) {
       const ch = String.fromCharCode(code);
-      expect(covered.has(ch), `No pattern for char: ${JSON.stringify(ch)} (0x${code.toString(16)})`).toBe(true);
+      expect(
+        covered.has(ch),
+        `No pattern for char: ${JSON.stringify(ch)} (0x${code.toString(16)})`,
+      ).toBe(true);
     }
   });
 });
@@ -92,16 +95,13 @@ describe("Pattern dictionary integrity", () => {
 describe("Pattern expression correctness (eval)", () => {
   // Only test tier1 and tier2 patterns to keep test time reasonable
   // Tier3/tier4 expressions are extremely long but follow the same pattern
-  const testable = ALL_PATTERNS.filter(
-    (p) => p.tags.includes("tier1") || p.tags.includes("tier2"),
-  );
+  const testable = ALL_PATTERNS.filter((p) => p.tags.includes("tier1") || p.tags.includes("tier2"));
 
-  it.each(testable.map((p) => [p.id, p] as [string, Pattern]))(
-    "expression %s evaluates to output",
-    (_id, p) => {
-      // biome-ignore lint/security/noEval: intentional JSFuck expression evaluation test
-      const result = String(eval(p.expression));
-      expect(result).toBe(p.output);
-    },
-  );
+  it.each(
+    testable.map((p) => [p.id, p] as [string, Pattern]),
+  )("expression %s evaluates to output", (_id, p) => {
+    // biome-ignore lint/security/noGlobalEval: intentional JSFuck expression evaluation test
+    const result = String(eval(p.expression));
+    expect(result).toBe(p.output);
+  });
 });

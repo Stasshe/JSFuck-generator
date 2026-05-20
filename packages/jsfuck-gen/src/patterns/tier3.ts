@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { CONSTR_KEY, FILL_KEY, FUNC_CTOR, FILL_FN_STR } from "./builder.js";
+import { CONSTR_KEY, FILL_FN_STR, FILL_KEY, FUNC_CTOR } from "./builder.js";
 
 // Tier 3: difficulty 2.5~3.5
 // Uppercase letters via constructor function strings
@@ -7,8 +7,16 @@ import { CONSTR_KEY, FILL_KEY, FUNC_CTOR, FILL_FN_STR } from "./builder.js";
 // Prerequisite: Tier 2 (all lowercase, g, S)
 
 const T3_REQUIRES = [
-  "char_f", "char_i", "char_l", "char_c", "char_o",
-  "char_n", "char_s", "char_t", "char_r", "char_u",
+  "char_f",
+  "char_i",
+  "char_l",
+  "char_c",
+  "char_o",
+  "char_n",
+  "char_s",
+  "char_t",
+  "char_r",
+  "char_u",
   "t2_bootstrap_g",
 ];
 
@@ -21,16 +29,16 @@ const A_UPPER_EXPR = `(""+[][${CONSTR_KEY}])[9]`;
 const B_UPPER_EXPR = `(""+(![])[${CONSTR_KEY}])[9]`;
 // Function constructor: ([]["fill"]["constructor"]+"")[9] = 'F'
 const F_UPPER_EXPR = `(""+${FUNC_CTOR})[9]`;
-// Number constructor: ((+[])["constructor"]+"")[9] = 'N'  (also in tier1 via NaN)
-const N_UPPER_EXPR = `("+(+[])[${CONSTR_KEY}])[9]`; // "function Number..."[9]
+// Number constructor: ("" + (0)["constructor"])[9] = 'N'  (also in tier1 via NaN)
+const N_UPPER_EXPR = `(""+((+[])[${CONSTR_KEY}]))[9]`; // "function Number..."[9]
 
 // Symbols from function fn strings
 // "function fill() { [native code] }"
 // indices: ((13) )(14) {(16) [(18) ](30) }(32) space(8,15,17,19,25,31)
-const OPEN_PAREN_EXPR = `${FILL_FN_STR}[13]`;   // (
-const CLOSE_PAREN_EXPR = `${FILL_FN_STR}[14]`;  // )
-const OPEN_BRACE_EXPR = `${FILL_FN_STR}[16]`;   // {
-const CLOSE_BRACE_EXPR = `${FILL_FN_STR}[32]`;  // }
+const OPEN_PAREN_EXPR = `${FILL_FN_STR}[13]`; // (
+const CLOSE_PAREN_EXPR = `${FILL_FN_STR}[14]`; // )
+const OPEN_BRACE_EXPR = `${FILL_FN_STR}[16]`; // {
+const CLOSE_BRACE_EXPR = `${FILL_FN_STR}[32]`; // }
 const OPEN_BRACKET_EXPR = `${FILL_FN_STR}[18]`; // [
 const CLOSE_BRACKET_EXPR = `${FILL_FN_STR}[30]`; // ]
 
@@ -173,7 +181,7 @@ const TIER3: Pattern[] = [
     tags: ["tier3", "symbol"],
     trapFor: [],
     requires: [],
-    description: "(0.1+\"\")[1] — period via float",
+    description: '(0.1+"")[1] — period via float',
   },
 ];
 

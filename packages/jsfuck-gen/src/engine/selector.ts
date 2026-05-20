@@ -1,4 +1,4 @@
-import type { Pattern, GeneratorConfig, SelectStrategy } from "../types.js";
+import type { GeneratorConfig, Pattern, SelectStrategy } from "../types.js";
 
 export function effectiveCost(p: Pattern, strategy: SelectStrategy): number {
   if (strategy === "shortest") return p.cost;
@@ -14,6 +14,7 @@ function weightedRandom(candidates: Pattern[], rng: () => number): Pattern {
     pick -= p.weight;
     if (pick <= 0) return p;
   }
+  // biome-ignore lint/style/noNonNullAssertion: candidates is non-empty (checked by caller)
   return candidates[candidates.length - 1]!;
 }
 
@@ -24,7 +25,7 @@ export function selectPattern(
 ): Pattern | null {
   const rng = config.rng ?? Math.random;
 
-  let candidates = patterns.filter(
+  const candidates = patterns.filter(
     (p) =>
       p.output === segment &&
       p.difficulty <= config.difficulty &&

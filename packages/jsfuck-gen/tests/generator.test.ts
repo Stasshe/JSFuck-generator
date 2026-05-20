@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, expect, it } from "vitest";
 import { generate } from "../src/engine/generator.js";
 import type { GeneratorConfig } from "../src/types.js";
 

@@ -63,9 +63,7 @@ export type QuizQuestion = {
   totalCost: number;
 };
 
-export type QuizResult =
-  | { ok: true; question: QuizQuestion }
-  | { ok: false; reason: string };
+export type QuizResult = { ok: true; question: QuizQuestion } | { ok: false; reason: string };
 
 export type PatternFilter = {
   output?: string;
