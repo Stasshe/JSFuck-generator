@@ -163,11 +163,13 @@ vitestで以下を保証する。
 
 ### 4.1 セグメンテーションDP
 
-入力文字列 `s`（長さ `n`）に対して、セグメンテーションを動的計画法で求める。各セグメントでは候補全体を見たうえで、極端に長い候補を除外し、残った候補に小さな乱数揺らぎを加えて選ぶ。
+入力文字列 `s`（長さ `n`）に対して、セグメンテーションを動的計画法で求める。まず最短コストを前向き・後ろ向きに計算し、復元時に「最短 + 予算」内へ収まる候補から乱択する。これにより、出力は短く保ちつつ、同じ入力でも複数の答えが出る。
 
 ```
-dp[i] = s[0..i) を表現する最小式長
-dp[0] = 0
+prefixCost[i] = s[0..i) を表現する最小式長
+suffixCost[i] = s[i..n) を表現する最小式長
+prefixCost[0] = 0
+suffixCost[n] = 0
 rawCandidates =
   patterns
     .filter(p => p.output === segment)
@@ -178,15 +180,20 @@ minLength = min(rawCandidates.map(p => p.expression.length))
 maxLength = max(minLength + 24, ceil(minLength * 1.8))
 candidates = rawCandidates.filter(p => p.expression.length <= maxLength)
 
-score(p) = p.expression.length + rng() * 12
+minCost = prefixCost[n]
+maxCost = minCost + max(24, ceil(minCost * 0.25))
 
-dp[i] = min over j in [max(0, i-MAX_SEG), i), p in candidates(s[j..i)) of:
-          dp[j] + score(p)
+復元時:
+  choices = candidates(s[pos..j)) のうち
+            usedCost + p.expression.length + suffixCost[j] <= maxCost
+            を満たすもの
+  weight(p) = 1 / p.expression.length
+  choices から rng で重み付き選択する
 
 MAX_SEG = 8   // セグメント長の上限。辞書の最大output長に合わせる
 ```
 
-`choice[i] = { j, pattern }` を同時に記録し、復元時に `GeneratedPart[]` を構築する。
+選ばれた `{ j, pattern }` を順に `GeneratedPart[]` へ追加する。
 
 ### 4.2 パターン候補
 
@@ -201,6 +208,32 @@ candidates =
 ```
 
 候補が複数ある場合でも、式長が最短候補から大きく離れるものは生成時に使わない。これにより、高難易度で `toString(36)` などの長い別経路が解禁されても、既に短く表現できる文字が過剰に長い式へ置き換わることを防ぐ。
+
+生成時には、既存パターンを直接変更せず、名前付きの同値変形ルールで候補を展開する。長さ上限は通常候補と同じ `boundedVarietyPool` で制限する。
+
+同値変形ルールの例：
+
+```
+primitive-source:
+  (![]+[])      <=> (!+!![]+[])       // false string
+  (!![]+[])     <=> (!+[]+[])         // true string
+  ([][+[]]+[])  <=> ([][[]]+[])       // undefined string
+  (+{}+[])      <=> (+[{}]+[])        // NaN string
+  (1/0+[])      <=> (+!![]/+[]+[])    // Infinity string
+
+numeric-index:
+  [0] <=> [+[]] <=> [+![]] <=> [[]-[]]
+  [1] <=> [+!![]] <=> [+!+[]]
+  [n] <=> [!![]+...+!![]]             // n = 2..9
+
+arithmetic-atom:
+  1/0 <=> +!![]/+[]
+
+paren:
+  expr <=> (expr)
+```
+
+このレイヤは tier1〜4 の辞書不足を直接埋めるものではなく、辞書に登録された各到達経路から同値な式の族を作るためのもの。新しい primitive source や constructor source が増えた場合は、パターン辞書ではなくこの同値変形ルールにも追加する。
 
 ### 4.3 候補がない場合
 

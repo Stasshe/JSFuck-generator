@@ -1,17 +1,20 @@
 import { patternDifficulty } from "../difficulty.js";
 import type { GeneratorConfig, Pattern } from "../types.js";
+import { expandEquivalentPatterns } from "./equivalence.js";
 
 export function candidatePatterns(
   segment: string,
   patterns: Pattern[],
   config: GeneratorConfig,
 ): Pattern[] {
-  return patterns.filter(
+  const baseCandidates = patterns.filter(
     (p) =>
       p.output === segment &&
       patternDifficulty(p) <= config.difficulty &&
       (config.allowLiteral || p.kind !== "literal"),
   );
+
+  return baseCandidates.flatMap((p) => [p, ...expandEquivalentPatterns(p)]);
 }
 
 export function selectPattern(

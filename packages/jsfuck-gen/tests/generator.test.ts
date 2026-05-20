@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generate } from "../src/engine/generator.js";
+import { boundedVarietyPool, candidatePatterns } from "../src/engine/selector.js";
+import { ALL_PATTERNS } from "../src/patterns/index.js";
 import type { GeneratorConfig } from "../src/types.js";
 
 const defaultConfig: GeneratorConfig = {
@@ -91,6 +93,14 @@ describe("generate()", () => {
 });
 
 describe("random selection", () => {
+  function seededRng(seed: number): () => number {
+    let s = seed;
+    return () => {
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      return s / 0x7fffffff;
+    };
+  }
+
   it("uses rng to vary among compact candidates", () => {
     const preferFalseString = (() => {
       const values = [0, 0.99];
@@ -125,6 +135,60 @@ describe("random selection", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.parts[0]?.pattern.id).not.toBe("t2_a");
+    }
+  });
+
+  it("produces several compact variants for the same input", () => {
+    const expressions = new Set<string>();
+    const lengths: number[] = [];
+
+    for (let seed = 1; seed <= 20; seed++) {
+      const result = generate("false", {
+        difficulty: 5.0,
+        allowLiteral: true,
+        rng: seededRng(seed),
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expressions.add(result.expression);
+        lengths.push(result.expression.length);
+      }
+    }
+
+    const shortest = Math.min(...lengths);
+    const longest = Math.max(...lengths);
+    expect(expressions.size).toBeGreaterThan(3);
+    expect(longest).toBeLessThanOrEqual(shortest + Math.max(24, Math.ceil(shortest * 0.25)));
+  });
+
+  it("expands candidates with named equivalence rules", () => {
+    const candidates = boundedVarietyPool(
+      candidatePatterns("a", ALL_PATTERNS, {
+        difficulty: 5.0,
+        allowLiteral: true,
+      }),
+    );
+    const ruleTags = new Set(candidates.flatMap((p) => p.tags.filter((tag) => tag.startsWith("eq:"))));
+
+    expect(ruleTags.has("eq:primitive-source")).toBe(true);
+    expect(ruleTags.has("eq:numeric-index")).toBe(true);
+    expect(ruleTags.has("eq:paren")).toBe(true);
+  });
+
+  it("generated variants evaluate to the requested string", () => {
+    for (let seed = 1; seed <= 10; seed++) {
+      const result = generate("false", {
+        difficulty: 5.0,
+        allowLiteral: true,
+        rng: seededRng(seed),
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        // biome-ignore lint/security/noGlobalEval: intentional generated expression evaluation test
+        expect(String(eval(result.expression))).toBe("false");
+      }
     }
   });
 });
