@@ -1,6 +1,4 @@
----
-
-# JSFuck Quiz & Generator 仕様書 v2
+# JSFuck Quiz & Generator 仕様書 v3
 
 ## 1. リポジトリ構成
 
@@ -9,67 +7,85 @@
   packages/
     jsfuck-gen/         # npm package: jsfuck-gen
   apps/
-    web/                # Next.js static site → gh pages
+    web/                # Next.js app
   pnpm-workspace.yaml
   package.json
 ```
-
----
 
 ## 2. `jsfuck-gen`
 
 ### 2.1 概要
 
-JSFuck式の生成・評価・クイズ生成を担うコアライブラリ。パターン辞書・生成エンジン・品質評価器をすべて含む。
+JSFuck 式の生成、導出説明、難易度評価、クイズ生成を担うコアライブラリ。
 
-### 2.2 公開API
+パターン辞書は DAG ベースで管理する。最終出力文字に直接対応するパターンだけでなく、`constructor` や `toString` などの中間表現も `role` 付きパターンとして登録し、生成時に `@{role}` プレースホルダーを解決する。
+
+### 2.2 公開 API
 
 ```ts
-// 生成
 generate(input: string, config: GeneratorConfig): GenerateResult
-
-// クイズ生成
 generateQuiz(config: QuizConfig): QuizResult
 
-// パターン辞書の参照
 getPatterns(filter?: PatternFilter): Pattern[]
 getSiblings(patternId: string): Pattern[]
+
+explainDerivation(derivation: Derivation, indent?: number): string
+explainParts(parts: GeneratedPart[]): string
+
+patternTier(pattern: Pattern): number
+patternDifficulty(pattern: Pattern): number
+partDifficulty(part: GeneratedPart): number
 ```
+
+`ALL_PATTERNS` もエクスポートする。`getPatterns()` は最終出力用の `kind: "jsfuck"` パターンだけを返す。中間表現を含めて参照したい場合は `ALL_PATTERNS` を使う。
 
 ### 2.3 型定義
 
 ```ts
 type Difficulty = number
 
-type PatternKind = "jsfuck" | "literal"
+type PatternKind = "jsfuck" | "subexpr"
 
 type Pattern = {
   id: string
-  output: string          // 評価済みキャッシュ。vitestで expression と照合して保証する
-  expression: string
+  output: string
+  role?: string
   kind: PatternKind
+  expression: string
+  strictExpression?: string
+  deps?: string[]
+  alternates?: string[]
+  strictAlternates?: string[]
+  pure: boolean
   tags: string[]
-  trapFor: string[]       // 混同しやすい patternId の一覧
-  requires: string[]      // 依存する patternId の一覧
   description?: string
 }
 
 type GeneratorConfig = {
-  difficulty: Difficulty  // UI/Config上の difficulty は「1文字あたりの目標難易度」を表す
-  allowLiteral: boolean
-  rng?: () => number      // 省略時は Math.random
+  difficulty: Difficulty
+  strict?: boolean
+  rng?: () => number
 }
 
 type QuizConfig = {
   difficulty: Difficulty
-  allowLiteral: boolean
-  length?: number         // 省略時は difficulty から決定
+  strict?: boolean
+  length?: number
   rng?: () => number
 }
 
+type Derivation = {
+  patternId: string
+  expression: string
+  description: string | undefined
+  deps: Record<string, Derivation>
+}
+
 type GeneratedPart = {
-  segment: string         // このパーツが表す出力文字列
+  segment: string
   pattern: Pattern
+  resolvedExpression: string
+  derivation: Derivation
 }
 
 type GenerateSuccess = {
@@ -77,7 +93,7 @@ type GenerateSuccess = {
   output: string
   expression: string
   parts: GeneratedPart[]
-  actualDifficulty: Difficulty   // tier * length の合計
+  actualDifficulty: Difficulty
 }
 
 type GenerateFailure = {
@@ -88,16 +104,16 @@ type GenerateFailure = {
 
 type GenerateResult = GenerateSuccess | GenerateFailure
 
-type QuizResult =
-  | { ok: true; question: QuizQuestion }
-  | { ok: false; reason: string }
-
 type QuizQuestion = {
   expression: string
   answer: string
   actualDifficulty: Difficulty
   parts: GeneratedPart[]
 }
+
+type QuizResult =
+  | { ok: true; question: QuizQuestion }
+  | { ok: false; reason: string }
 
 type PatternFilter = {
   output?: string
@@ -107,275 +123,305 @@ type PatternFilter = {
 }
 ```
 
----
+### 2.4 Strict mode
+
+`strict: true` の場合は `pure: true` のパターンだけを使う。`pure: true` は `[]()!+` のみで構成できることを表す。
+
+`strictExpression` と `strictAlternates` は、数値添字を JSFuck 式へ展開したテンプレートである。例:
+
+```
+[0] -> [+[]]
+[1] -> [+!![]]
+[2] -> [(!![])+(!![])]
+```
+
+`strict: false` または未指定の場合は、数値添字や短いリテラルショートカットを含む `pure: false` パターンも使用できる。
 
 ## 3. パターン辞書
 
-### 3.1 Tier構造
+### 3.1 PatternKind
 
-パターンは取得経路の複雑さによって4つのTierに分類される。パターン単体には `difficulty` を持たせず、`tierN` タグから tier を推定する。
+```
+jsfuck
+  DP がユーザー入力のセグメントと照合する最終出力パターン。
+
+subexpr
+  他パターンの deps 経由でだけ使う中間表現パターン。
+  DP のセグメント照合には使わない。
+```
+
+### 3.2 Role と deps
+
+`expression` は `@{role}` プレースホルダーを含んでよい。`deps` はその式が参照する role 名の一覧である。
+
+生成時は resolver が role ごとに候補パターンを選び、再帰的に解決して `Derivation` を作る。同じ role でも呼び出しごとに独立して候補を選ぶため、同じ入力から複数の式が生成される。
+
+### 3.3 Tier 構造
+
+パターンは `tier1` から `tier4` のタグで取得経路の複雑さを表す。パターン単体に `difficulty` フィールドは持たせない。
 
 ```
 Tier 1
-  基本リテラル文字列（false/true/undefined/NaN/Infinity）への
-  直接indexingで取れる文字。
-  取れる文字: a d e f i I l n N r s t u y 0~9
+  false / true / undefined / NaN / Infinity などの基本値と直接 indexing。
+  数字や基本プリミティブ文字列も含む。
 
 Tier 2
-  toString(36) による小文字。
-  ただし Tier 1 で短く取れる a d e f i l n r s t u は登録しない。
-  radix の 36 は JS の引数ToNumberに任せ、短い文字列式 `"36"` で渡す。
-  前提: "fill" 経由で Function を取得し、"toString" 文字列を構築できること。
+  toString(36) などで得る小文字。
+  constructor / toString のキー構築は role/deps 経由で解決する。
 
 Tier 3
-  Function コンストラクタ経由で取れる大文字・記号。
-  前提: Tier 2 が使える状態。
+  Function コンストラクタや各種 constructor 文字列から得る大文字・記号。
 
 Tier 4
-  escape/unescape・関数のtoString表現・浮動小数点など特殊経路。
-  対象: ASCII記号全般・制御文字。
-  前提: Tier 3 が使える状態。
+  escape / unescape、HTML 文字列、関数文字列表現など特殊経路。
+  printable ASCII 全体の補完を担う。
 ```
 
-### 3.2 literalパターン
+`patternTier(pattern)` は `tier1` から `tier4` タグを読んで `1..4` を返す。該当タグがない場合は `5` として扱う。
 
-取得経路がない文字、またはフォールバックとして登録する文字列リテラルパターン。
+### 3.4 Alternate 生成
+
+パターンは手動の `alternates` に加えて、ビルダーが一部の同値変形を自動生成する。
 
 ```
-kind: "literal"
-tags: ["literal", "fallback"]
+numeric index:
+  [0] <=> [+[]] <=> [+![]] <=> [[]-[]]
+  [1] <=> [+!![]] <=> [+!+[]]
+  [n] <=> [!![]+...+!![]]  // n = 2..9
+
+primitive source:
+  (![]+[]) <=> (!+!![]+[])
+  (!![]+[]) <=> (!+[]+[])
+  ([][+[]]+[]) <=> ([][[]]+[])
+  (+{}+[]) <=> (+[{}]+[]) <=> ([][[]]+(+[])+[])
+  (1/0+[]) <=> (+!![]/+[]+[]) <=> (!+[]/+[]+[])
+  ([]+{}) <=> ({}+[])
 ```
 
-### 3.3 辞書の整合性制約
+プレースホルダーを含むテンプレートは、現時点では自動 alternate 生成の対象外とする。
 
-vitestで以下を保証する。
+### 3.5 辞書の整合性制約
 
-- `expression` を評価した結果が `output` と一致する
-- `requires` に列挙した `patternId` がすべて辞書に存在する
-- `requires` に含まれるパターンの算出難易度が自身の算出難易度以下である
-- `trapFor` に列挙した `patternId` がすべて辞書に存在する
+Vitest で以下を保証する。
+
 - `id` が辞書全体で一意である
-- 循環依存が存在しない
-
----
+- `deps` に列挙した role が辞書に存在する
+- role 依存に循環が存在しない
+- `patternDifficulty(pattern)` が正である
+- `pure: true` のパターンは `strictExpression` を持ち、数値添字を含まない
+- printable ASCII 文字 `0x20..0x7e` が `kind: "jsfuck"` パターンで少なくとも 1 つ存在する
+- プレースホルダーを含まない tier1 の `expression` は評価結果が `output` と一致する
 
 ## 4. 生成エンジン
 
-### 4.1 セグメンテーションDP
+### 4.1 セグメンテーション DP
 
-入力文字列 `s`（長さ `n`）に対して、セグメンテーションを動的計画法で求める。まず最短コストを前向き・後ろ向きに計算し、復元時に「最短 + 予算」内へ収まる候補から乱択する。これにより、出力は短く保ちつつ、同じ入力でも複数の答えが出る。
+入力文字列 `s` に対して、推定式長をコストにした DP でセグメンテーションを決める。
+
+`candidatePatterns(segment)` は以下を満たす候補だけを返す。
 
 ```
-prefixCost[i] = s[0..i) を表現する最小式長
-suffixCost[i] = s[i..n) を表現する最小式長
-prefixCost[0] = 0
-suffixCost[n] = 0
-rawCandidates =
-  patterns
-    .filter(p => p.output === segment)
-    .filter(p => patternTier(p) <= config.difficulty) // config.difficulty は1文字あたりの目標難易度のため、pattern の tier と比較する
-    .filter(p => config.allowLiteral || p.kind !== "literal")
+p.kind === "jsfuck"
+p.output === segment
+patternTier(p) <= config.difficulty
+!config.strict || p.pure
+```
 
-minLength = min(rawCandidates.map(p => p.expression.length))
+`strict: true` の場合は `strictExpression` / `strictAlternates` を優先した variant を使う。
+
+### 4.2 推定式長
+
+DP の Pass 1 では、`@{role}` を role ごとの最小推定式長で置換した長さを使う。
+
+```
+estimatedExprLength(pattern) =
+  expression.length
+  - sum("@{role}".length)
+  + sum(minLenByRole[role])
+```
+
+`minLenByRole` は全パターンを最大 20 pass 走査して収束させる。中間表現パターンは difficulty に関係なく role 解決候補へ含めるが、`strict: true` では `pure: true` のみ使う。
+
+### 4.3 Variety pool
+
+候補は最短式だけに固定しない。セグメントごとに以下の範囲へ収まる候補を採用する。
+
+```
+minLength = min(estimatedExprLength(candidate))
 maxLength = max(minLength + 24, ceil(minLength * 1.8))
-candidates = rawCandidates.filter(p => p.expression.length <= maxLength)
+pool = candidates.filter(len <= maxLength)
+```
 
+入力全体の復元時も、最短コストに探索予算を加えた範囲で候補を選ぶ。
+
+```
 minCost = prefixCost[n]
-maxCost = minCost + max(24, ceil(minCost * 0.25))
+budget = max(24, ceil(minCost * 0.25))
+       + ceil(minCost * 8 * explorationLevel(config.difficulty))
+maxCost = minCost + budget
 
-復元時:
-  choices = candidates(s[pos..j)) のうち
-            usedCost + p.expression.length + suffixCost[j] <= maxCost
-            を満たすもの
-  weight(p) = 1 / p.expression.length
-  choices から rng で重み付き選択する
-
-MAX_SEG = 9   // セグメント長の上限。辞書の最大output長に合わせる（"undefined" = 9文字）
+explorationLevel(difficulty) = clamp((difficulty - 5) / 15, 0, 1)
 ```
 
-選ばれた `{ j, pattern }` を順に `GeneratedPart[]` へ追加する。
+低 difficulty では短い式を優先し、高 difficulty では長めの候補も選ばれやすくする。
 
-### 5. 品質評価器
+### 4.4 DAG 解決
 
-### 5.1 実効難易度の計算（1文字あたりの難易度）
-
-UI/Config 上の `difficulty` は「1文字あたりの目標難易度」を表す。生成・クイズ双方で内部比較はパターンの `tier`（1..4、literal は5）を用いて行う。
-
-生成結果の `actualDifficulty` は、生成された全文字に対する「1文字あたりの実効難易度」の平均で算出する。
+DP で選択された各パターンは `resolvePattern()` で解決する。
 
 ```
-partPerCharDifficulty(part) = patternTier(part)   // 1文字あたりの難易度
-totalChars = sum(part.segment.length for part in parts)
-actualDifficulty = (sum(partPerCharDifficulty(part) * part.segment.length for part in parts)) / totalChars
+1. expression / strictExpression から @{role} を抽出する
+2. role を持つ候補から strict 条件に合うものを選ぶ
+3. 候補を再帰的に解決する
+4. テンプレート中の @{role} を解決済み expression で置換する
+5. Derivation を返す
 ```
 
-ここで `patternTier` は `tier1`〜`tier4` タグから決定する。`literal` パターンは `patternTier = 5` として扱う。
+`GeneratedPart.resolvedExpression` はプレースホルダー解決済みの式で、`GenerateSuccess.expression` は各 part を `(...) + (...)` で連結した式である。
 
-### 5.2 クイズ品質チェック
+### 4.5 失敗時
 
-Quiz生成時は、上記で定義した1文字あたりの `actualDifficulty` と、`config.difficulty`（目標の1文字あたり難易度）の差分が許容誤差内であることを確認する。
-
-```
-abs(actualDifficulty - targetDifficulty) <= DIFFICULTY_TOLERANCE
-DIFFICULTY_TOLERANCE = 1
-```
-
-ただし `targetDifficulty` が最大値（20）の場合、上方向の誤差は無制限に許容する。下方向は通常どおり `DIFFICULTY_TOLERANCE` を適用する。
-
-収まらない場合は再生成する。最大試行回数は `MAX_QUIZ_ATTEMPTS = 10`。超過した場合は `QuizResult.ok: false` を返す。
-
-numeric-index:
-  [0] <=> [+[]] <=> [+![]] <=> [[]-[]]
-  [1] <=> [+!![]] <=> [+!+[]]
-  [n] <=> [!![]+...+!![]]             // n = 2..9
-
-arithmetic-atom:
-  1/0 <=> +!![]/+[]
-
-paren:
-  expr <=> (expr)
-```
-
-このレイヤは tier1〜4 の辞書不足を直接埋めるものではなく、辞書に登録された各到達経路から同値な式の族を作るためのもの。新しい primitive source や constructor source が増えた場合は、パターン辞書ではなくこの同値変形ルールにも追加する。
-
-### 4.3 候補がない場合
-
-`allowLiteral: true` のとき、literalパターンで補完する。
-
-`allowLiteral: false` のとき、`GenerateFailure` を返す。
+候補が作れない場合は `GenerateFailure` を返す。
 
 ```
 reason: "unsupported_chars"
-unsupportedChars: 候補がなかった文字の一覧
+unsupportedChars: その difficulty / strict 条件で候補がない文字の一覧
 ```
 
----
+DP 復元または DAG 解決が失敗した場合は `generation_failed` を返す。
 
-## 5. 品質評価器
+空文字列は成功扱いで、`expression: "[]+[]"`、`actualDifficulty: 1.0`、`parts: []` を返す。
 
-### 5.1 実効難易度の計算
+## 5. 難易度評価
 
-生成結果の `actualDifficulty` は以下で算出する。
+### 5.1 パターン難易度
 
 ```
+patternDifficulty(pattern) = patternTier(pattern) * max(1, pattern.output.length)
 partDifficulty(part) = patternTier(part.pattern) * part.segment.length
-actualDifficulty = sum(partDifficulty(part))
 ```
 
-`patternTier` は `tier1`〜`tier4` タグから決定する。literal は tier 5 として扱う。
+### 5.2 実効難易度
 
-### 5.2 クイズ品質チェック
-
-Quiz生成時、`actualDifficulty` と target difficulty の差分が許容誤差内であることを確認する。
+生成結果の `actualDifficulty` は、生成された全文字に対する 1 文字あたりの平均難易度である。
 
 ```
-abs(actualDifficulty - targetDifficulty) <= DIFFICULTY_TOLERANCE
-DIFFICULTY_TOLERANCE = 1
+totalChars = sum(part.segment.length)
+actualDifficulty = sum(partDifficulty(part)) / totalChars
 ```
 
-ただし `targetDifficulty` が最大値（20）の場合、上方向の誤差は無制限に許容する。下方向は通常どおり `DIFFICULTY_TOLERANCE` を適用する。
+`parts` が空の場合は `1.0` を返す。
 
-収まらない場合は再生成する。最大試行回数は `MAX_QUIZ_ATTEMPTS = 10`。超過した場合は `QuizResult.ok: false` を返す。
-
----
-
-## 6. Quiz生成
+## 6. Quiz 生成
 
 ### 6.1 出力文字列の決定
 
-`config.length` が指定されない場合、`difficulty` から文字数レンジを決定する。
+`config.length` が指定されない場合、difficulty から文字数レンジを決定する。
 
 ```
-difficulty 1~2:   1~2文字
-difficulty 3~5:   1~3文字
-difficulty 6~10:  2~5文字
-difficulty 11~:   4~10文字
+difficulty <= 2.0:   1..2 文字
+difficulty <= 5.0:   1..3 文字
+difficulty <= 10.0:  2..5 文字
+difficulty > 10.0:   4..10 文字
 ```
-
-レンジ内でランダムに決定する。
 
 ### 6.2 出題文字列の生成
 
-パターン辞書から `patternDifficulty(pattern) <= config.difficulty` かつ `kind !== "literal"` (allowLiteralに従う) のパターンを候補にし、出力文字列をランダムに構築する。
-
-構築した文字列を `generate()` に渡して式を生成する。
-
-### 6.3 回答判定
+`getPatterns()` から 1 文字出力のパターンを候補にする。
 
 ```
-userAnswer === question.answer   // 完全一致。大小文字・空白を区別する
+p.output.length === 1
+!config.strict || p.pure
+patternTier(p) <= config.difficulty
 ```
 
----
+候補から `length` 文字をランダムに選んで `generate()` に渡す。
+
+### 6.3 品質チェック
+
+Quiz 生成時は `actualDifficulty` と目標 difficulty の差分を確認する。
+
+```
+DIFFICULTY_TOLERANCE = 1
+MAX_QUIZ_ATTEMPTS = 10
+MAX_DIFFICULTY = 20
+```
+
+通常は上下とも許容差 `1` 以内を要求する。ただし `targetDifficulty === 20` の場合、上方向の誤差は許容する。下方向は通常どおり確認する。
+
+### 6.4 回答判定
+
+```
+userAnswer === question.answer
+```
+
+完全一致。大小文字・空白を区別する。
 
 ## 7. `apps/web`
 
 ### 7.1 技術構成
 
 ```
-Next.js (static export → gh pages)
+Next.js
+React
 TypeScript
 Tailwind CSS
 ```
 
-状態管理はReact localStateのみ。グローバル状態は持たない。
+状態管理は React local state のみ。
 
 ### 7.2 ページ構成
 
 ```
-/           トップ。各モードへの導線。
-/quiz       Quiz Mode
+/           トップ。各モードへの導線
 /generate   Generate Mode
+/quiz       Quiz Mode
 /patterns   Pattern Viewer
 ```
 
-### 7.3 Quiz Mode
+### 7.3 Generate Mode
 
-**入力:**
+入力:
 
 ```
-difficulty: integer slider 1~20
-length: 省略可能（空欄で自動決定）
-allowLiteral: toggle
+input: ASCII, 最大100文字
+difficulty: slider 1..20
+strict: checkbox
 Generate ボタン
 ```
 
-**出題:**
+出力:
+
+```
+生成された JSFuck 式
+Copy ボタン
+output 文字列
+actualDifficulty
+Breakdown テーブル
+未対応文字の一覧
+```
+
+### 7.4 Quiz Mode
+
+入力:
+
+```
+difficulty: slider 1..20
+strict: checkbox
+length: 省略可能。1..100 の整数
+Generate ボタン
+```
+
+出題と回答:
 
 ```
 式を等幅フォントで表示
-回答入力欄
+answer 入力欄
 Submit ボタン
-```
-
-**回答後:**
-
-```
 正解 / 不正解
 正しい出力文字列
-Breakdown テーブル（後述）
-actualDifficulty の表示
-```
-
-### 7.4 Generate Mode
-
-**入力:**
-
-```
-入力文字列（ASCII, 最大100文字）
-difficulty: integer slider 1~20
-allowLiteral: toggle
-Generate ボタン
-```
-
-**出力:**
-
-```
-生成されたJSFuck式（コピーボタン付き）
-output文字列
 actualDifficulty
 Breakdown テーブル
-未対応文字の一覧（エラー時）
 ```
 
 ### 7.5 Pattern Viewer
@@ -383,75 +429,55 @@ Breakdown テーブル
 登録済みパターンの一覧表示。
 
 ```
-フィルター: output文字 / difficulty範囲 / tags / kind
-表示項目: id / output / expression / kind / tier / difficulty / tags / trapFor / requires / description
+フィルター: output / min difficulty / max difficulty / tags / kind
+表示項目: id / output / expression / kind / tier / difficulty / tags / deps / description
 ```
+
+Web 側は `ALL_PATTERNS` を表示するため、`jsfuck` と `subexpr` の両方を確認できる。
 
 ### 7.6 Breakdown テーブル
 
-Quiz・Generate 両モードで共通して表示する。
+Quiz と Generate の共通表示。
 
 ```
-列: segment / expression / difficulty / tags / description
-trapFor に含まれるパターンがあれば「混同注意」として行をハイライト
-requires の深さに応じてインデント表示
+列: segment / resolvedExpression / difficulty / tags / description
 ```
 
----
+`difficulty` は `partDifficulty(part)` を表示する。依存の深さは role/deps から算出し、segment のインデントに反映する。
 
-## 8. デプロイ
+## 8. 開発・検証
 
-### 8.1 `jsfuck-gen`
-
-```
-npm publish
-public package
-```
-
-### 8.2 `apps/web`
+### 8.1 主なコマンド
 
 ```
-Next.js static export
-gh pages deploy
-GitHub Actions で main push 時に自動デプロイ
+pnpm install
+pnpm test
+pnpm --dir packages/jsfuck-gen test
+pnpm build
+pnpm web:dev
+pnpm web:build
 ```
 
----
-
-## 9. 開発フロー
-
-### 9.1 vitestの責務
+### 8.2 Vitest の責務
 
 ```
 packages/jsfuck-gen/
-  パターン辞書の整合性チェック（全項目）
+  パターン辞書の整合性チェック
   generate() の出力検証
+  DAG 解決済み expression の eval 検証
+  strict mode の数値添字展開検証
+  alternate / variety pool の検証
   generateQuiz() の出力検証
-  DPセグメンテーションの正確性
   難易度計算の検証
 ```
 
-### 9.2 実装順序
-
-```
-Phase 1: 型定義・パターン辞書（Tier 1）・vitestセットアップ
-Phase 2: DPセグメンテーション・パターン選択・generate()
-Phase 3: 品質評価器・generateQuiz()
-Phase 4: apps/web の全ページ実装
-Phase 5: パターン辞書の拡充（Tier 2~4）
-Phase 6: npm publish・gh pages デプロイ設定
-```
-
----
-
-## 10. 未対応・将来拡張
-
-初期版では対象外とする。
+## 9. 未対応・将来拡張
 
 ```
 ユーザー投稿によるパターン追加
 ログイン・ランキング・履歴の永続保存
-Unicode文字列の生成
+Unicode 文字列の生成
 完全最短化アルゴリズム
-seed付きランダム生成（rng注入で将来対応可能な設計にしてある）
+プレースホルダー解決後の alternate 再生成
+デプロイ自動化の整備
 ```
