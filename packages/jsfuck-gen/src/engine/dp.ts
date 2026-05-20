@@ -24,8 +24,12 @@ export function segmentDP(
       const selected = selectPattern(segment, patterns, config);
       if (selected === null) continue;
 
-      const cost = dp[j] + effectiveCost(selected, config.strategy);
-      if (cost < dp[i]) {
+      const previousCost = dp[j];
+      const currentCost = dp[i];
+      if (previousCost === undefined || currentCost === undefined) continue;
+
+      const cost = previousCost + effectiveCost(selected, config.strategy);
+      if (cost < currentCost) {
         dp[i] = cost;
         choice[i] = { j, pattern: selected };
       }
@@ -39,7 +43,7 @@ export function segmentDP(
   let pos = n;
   while (pos > 0) {
     const c = choice[pos];
-    if (c === null) return null;
+    if (c == null) return null;
     parts.push({ segment: input.slice(c.j, pos), pattern: c.pattern });
     pos = c.j;
   }

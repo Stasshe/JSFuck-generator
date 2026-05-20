@@ -21,10 +21,11 @@ function buildQuizString(
   allowLiteral: boolean,
   rng: () => number,
 ): string {
-  const candidates = getPatterns({
+  const filter = {
     difficulty: { max: difficulty },
-    kind: allowLiteral ? undefined : "jsfuck",
-  }).filter((p) => p.output.length === 1 && p.kind !== "literal");
+    ...(allowLiteral ? {} : { kind: "jsfuck" as const }),
+  };
+  const candidates = getPatterns(filter).filter((p) => p.output.length === 1 && p.kind !== "literal");
 
   if (candidates.length === 0) return "a";
 
