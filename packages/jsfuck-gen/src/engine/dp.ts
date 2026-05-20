@@ -57,7 +57,7 @@ export function segmentDP(
     }
   }
 
-  const maxCost = prefixCost[n]! + varietyBudget(prefixCost[n]!);
+  const maxCost = prefixCost[n]! + varietyBudget(prefixCost[n]!, config.difficulty);
   const parts: GeneratedPart[] = [];
   let pos = 0;
   let usedCost = 0;
@@ -99,7 +99,7 @@ function selectNextChoice(
       choices.push({
         j,
         pattern,
-        weight: 1 / Math.max(1, expressionCost),
+        weight: choiceWeight(pattern, segment, config.difficulty),
       });
     }
   }
@@ -116,6 +116,20 @@ function selectNextChoice(
   return choices[choices.length - 1] ?? null;
 }
 
-function varietyBudget(minCost: number): number {
-  return Math.max(24, Math.ceil(minCost * 0.25));
+function choiceWeight(pattern: Pattern, segment: string, difficulty: number): number {
+  const expressionCost = pattern.expression.length;
+  const level = explorationLevel(difficulty);
+  const compactWeight = 1 / Math.max(1, expressionCost);
+  const exploratoryWeight = expressionCost / Math.max(1, segment.length * segment.length);
+  return compactWeight * (1 - level) + exploratoryWeight * level;
+}
+
+function varietyBudget(minCost: number, difficulty: number): number {
+  const baseBudget = Math.max(24, Math.ceil(minCost * 0.25));
+  const exploratoryBudget = Math.ceil(minCost * 8 * explorationLevel(difficulty));
+  return baseBudget + exploratoryBudget;
+}
+
+function explorationLevel(difficulty: number): number {
+  return Math.min(1, Math.max(0, (difficulty - 5) / 15));
 }
