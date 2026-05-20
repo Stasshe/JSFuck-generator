@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { AT_FN_STR, CONSTR_KEY, ENTRIES_ITER_STR, FILL_FN_STR, FILL_KEY, FUNC_CTOR, NAN_STR } from "./builder.js";
+import { AT_FN_STR, CONSTR_KEY, ENTRIES_ITER_STR, FILL_FN_STR, FUNC_CTOR, NAN_STR, NUM_CTOR_FN_STR } from "./builder.js";
 
 // Tier 3: difficulty 2.5~3.5
 // Uppercase letters via constructor function strings
@@ -29,9 +29,6 @@ const A_UPPER_EXPR = `(""+[][${CONSTR_KEY}])[9]`;
 const B_UPPER_EXPR = `(""+(![])[${CONSTR_KEY}])[9]`;
 // Function constructor: ([]["fill"]["constructor"]+"")[9] = 'F'
 const F_UPPER_EXPR = `(""+${FUNC_CTOR})[9]`;
-// Number constructor: ("" + (0)["constructor"])[9] = 'N'  (also in tier1 via NaN)
-const N_UPPER_EXPR = `(""+((+[])[${CONSTR_KEY}]))[9]`; // "function Number..."[9]
-
 // Symbols from function fn strings
 // "function fill() { [native code] }"
 // indices: ((13) )(14) {(16) [(18) ](30) }(32) space(8,15,17,19,25,31)
@@ -57,7 +54,6 @@ const TIER3: Pattern[] = [
     id: "t3_A_upper",
     output: "A",
     expression: A_UPPER_EXPR,
-    alternates: [`(${NAN_STR}+${ENTRIES_ITER_STR})[11]`],
     kind: "jsfuck",
     tags: ["tier3", "uppercase", "from_constructor"],
     trapFor: ["char_a"],
@@ -159,6 +155,28 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '(0.1+"")[1] — period via float',
+  },
+  // 'A' via NaN + [object Array Iterator]: shorter path, only tier1 chars needed
+  {
+    id: "t3_A_upper_entries",
+    output: "A",
+    expression: `(${NAN_STR}+${ENTRIES_ITER_STR})[11]`,
+    kind: "jsfuck",
+    tags: ["tier3", "uppercase", "from_entries"],
+    trapFor: ["char_a"],
+    requires: ["char_e", "char_n", "char_t", "char_r", "char_i", "char_s"],
+    description: '"NaN[object Array Iterator]"[11] — A',
+  },
+  // 'm' via Number constructor string: "function Number(){...}"[11]
+  {
+    id: "t3_m_number_ctor",
+    output: "m",
+    expression: `${NUM_CTOR_FN_STR}[11]`,
+    kind: "jsfuck",
+    tags: ["tier3", "from_constructor"],
+    trapFor: [],
+    requires: [...T3_REQUIRES],
+    description: '"function Number(){...}"[11] — m',
   },
 ];
 
