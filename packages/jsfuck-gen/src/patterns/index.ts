@@ -1,4 +1,5 @@
 import type { Pattern, PatternFilter } from "../types.js";
+import { patternDifficulty } from "../difficulty.js";
 import TIER1 from "./tier1.js";
 import TIER2 from "./tier2.js";
 import TIER3 from "./tier3.js";
@@ -14,9 +15,6 @@ function makeLiteral(ch: string): Pattern {
     output: ch,
     expression: JSON.stringify(ch),
     kind: "literal",
-    difficulty: 0.5,
-    weight: 1,
-    cost: JSON.stringify(ch).length,
     tags: ["literal", "fallback"],
     trapFor: [],
     requires: [],
@@ -45,8 +43,8 @@ export function getPatterns(filter?: PatternFilter): Pattern[] {
   }
   if (filter?.difficulty !== undefined) {
     const { min, max } = filter.difficulty;
-    if (min !== undefined) result = result.filter((p) => p.difficulty >= min);
-    if (max !== undefined) result = result.filter((p) => p.difficulty <= max);
+    if (min !== undefined) result = result.filter((p) => patternDifficulty(p) >= min);
+    if (max !== undefined) result = result.filter((p) => patternDifficulty(p) <= max);
   }
   if (filter?.tags !== undefined && filter.tags.length > 0) {
     result = result.filter((p) => filter.tags!.every((tag) => p.tags.includes(tag)));

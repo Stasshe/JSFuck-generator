@@ -13,11 +13,11 @@ const H: Record<string, string> = {
   "2": "!![]+!![]+[]",
   "3": "!![]+!![]+!![]+[]",
   "4": "!![]+!![]+!![]+!![]+[]",
-  "5": "!![]+!![]+!![]+!![]+!![]+[]",
-  "6": "!![]+!![]+!![]+!![]+!![]+!![]+[]",
-  "7": "!![]+!![]+!![]+!![]+!![]+!![]+!![]+[]",
-  "8": "!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+[]",
-  "9": "!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+[]",
+  "5": '"5"',
+  "6": '"6"',
+  "7": '"7"',
+  "8": '"8"',
+  "9": '"9"',
   // A-F uppercase hex digits from tier3
   A: `(""+[][${CONSTR_KEY}])[9]`, // 'A' from Array constructor fn string
   B: `(""+(![])[${CONSTR_KEY}])[9]`, // 'B' from Boolean constructor fn string
@@ -48,7 +48,6 @@ function makeUnescape(
   output: string,
   hex1: string,
   hex2: string,
-  difficulty: number,
   extraRequires: string[],
   description: string,
 ): Pattern {
@@ -58,9 +57,6 @@ function makeUnescape(
     output,
     expression: expr,
     kind: "jsfuck",
-    difficulty,
-    weight: 1,
-    cost: expr.length,
     tags: ["tier4", "unescape"],
     trapFor: [],
     requires: [
@@ -83,59 +79,59 @@ function makeUnescape(
 }
 
 // Symbols with hex codes using only 0-9 in both positions
-const DIGIT_ONLY_SYMBOLS: Array<[string, string, string, string, number]> = [
-  ["t4_excl", "!", "2", "1", 3.5],
-  ["t4_dquote", '"', "2", "2", 3.5],
-  ["t4_hash", "#", "2", "3", 3.5],
-  ["t4_dollar", "$", "2", "4", 3.5],
-  ["t4_percent", "%", "2", "5", 3.5],
-  ["t4_amp", "&", "2", "6", 3.5],
-  ["t4_squote", "'", "2", "7", 3.5],
-  ["t4_star", "*", "2", "A", 3.5], // needs A from tier3
-  ["t4_plus", "+", "2", "B", 3.5], // needs B from tier3
-  ["t4_comma", ",", "2", "C", 3.6], // needs C (bootstrap)
-  ["t4_minus", "-", "2", "D", 3.6], // needs D (bootstrap)
-  ["t4_slash", "/", "2", "F", 3.5], // needs F from tier3
-  ["t4_colon", ":", "3", "A", 3.5], // needs A
-  ["t4_semi", ";", "3", "B", 3.5], // needs B
-  ["t4_lt", "<", "3", "C", 3.6], // needs C
-  ["t4_eq", "=", "3", "D", 3.6], // needs D
-  ["t4_gt", ">", "3", "E", 3.6], // needs E
-  ["t4_quest", "?", "3", "F", 3.5], // needs F
-  ["t4_at", "@", "4", "0", 3.5],
+const DIGIT_ONLY_SYMBOLS: Array<[string, string, string, string]> = [
+  ["t4_excl", "!", "2", "1"],
+  ["t4_dquote", '"', "2", "2"],
+  ["t4_hash", "#", "2", "3"],
+  ["t4_dollar", "$", "2", "4"],
+  ["t4_percent", "%", "2", "5"],
+  ["t4_amp", "&", "2", "6"],
+  ["t4_squote", "'", "2", "7"],
+  ["t4_star", "*", "2", "A"], // needs A from tier3
+  ["t4_plus", "+", "2", "B"], // needs B from tier3
+  ["t4_comma", ",", "2", "C"], // needs C (bootstrap)
+  ["t4_minus", "-", "2", "D"], // needs D (bootstrap)
+  ["t4_slash", "/", "2", "F"], // needs F from tier3
+  ["t4_colon", ":", "3", "A"], // needs A
+  ["t4_semi", ";", "3", "B"], // needs B
+  ["t4_lt", "<", "3", "C"], // needs C
+  ["t4_eq", "=", "3", "D"], // needs D
+  ["t4_gt", ">", "3", "E"], // needs E
+  ["t4_quest", "?", "3", "F"], // needs F
+  ["t4_at", "@", "4", "0"],
 ];
 
 // Uppercase letters C-Z via unescape
-const UPPERCASE_HEX: Array<[string, string, string, string, number]> = [
-  ["t4_C_upper", "C", "4", "3", 3.6],
-  ["t4_D_upper", "D", "4", "4", 3.6],
-  ["t4_E_upper", "E", "4", "5", 3.6],
-  ["t4_G_upper", "G", "4", "7", 3.6],
-  ["t4_H_upper", "H", "4", "8", 3.6],
-  ["t4_J_upper", "J", "4", "A", 3.6], // needs A
-  ["t4_K_upper", "K", "4", "B", 3.6], // needs B
-  ["t4_L_upper", "L", "4", "C", 3.7], // needs C (bootstrap)
-  ["t4_M_upper", "M", "4", "D", 3.7], // needs D (bootstrap)
-  ["t4_P_upper", "P", "5", "0", 3.6],
-  ["t4_Q_upper", "Q", "5", "1", 3.6],
-  ["t4_R_upper", "R", "5", "2", 3.6],
-  ["t4_T_upper", "T", "5", "4", 3.6],
-  ["t4_U_upper", "U", "5", "5", 3.6],
-  ["t4_V_upper", "V", "5", "6", 3.6],
-  ["t4_W_upper", "W", "5", "7", 3.6],
-  ["t4_X_upper", "X", "5", "8", 3.6],
-  ["t4_Y_upper", "Y", "5", "9", 3.6],
-  ["t4_Z_upper", "Z", "5", "A", 3.6], // needs A
+const UPPERCASE_HEX: Array<[string, string, string, string]> = [
+  ["t4_C_upper", "C", "4", "3"],
+  ["t4_D_upper", "D", "4", "4"],
+  ["t4_E_upper", "E", "4", "5"],
+  ["t4_G_upper", "G", "4", "7"],
+  ["t4_H_upper", "H", "4", "8"],
+  ["t4_J_upper", "J", "4", "A"], // needs A
+  ["t4_K_upper", "K", "4", "B"], // needs B
+  ["t4_L_upper", "L", "4", "C"], // needs C (bootstrap)
+  ["t4_M_upper", "M", "4", "D"], // needs D (bootstrap)
+  ["t4_P_upper", "P", "5", "0"],
+  ["t4_Q_upper", "Q", "5", "1"],
+  ["t4_R_upper", "R", "5", "2"],
+  ["t4_T_upper", "T", "5", "4"],
+  ["t4_U_upper", "U", "5", "5"],
+  ["t4_V_upper", "V", "5", "6"],
+  ["t4_W_upper", "W", "5", "7"],
+  ["t4_X_upper", "X", "5", "8"],
+  ["t4_Y_upper", "Y", "5", "9"],
+  ["t4_Z_upper", "Z", "5", "A"], // needs A
 ];
 
 // More symbols
-const MORE_SYMBOLS: Array<[string, string, string, string, number]> = [
-  ["t4_backslash", "\\", "5", "C", 3.8], // needs C
-  ["t4_caret", "^", "5", "E", 3.7], // needs E
-  ["t4_underscore", "_", "5", "F", 3.6], // needs F
-  ["t4_backtick", "`", "6", "0", 3.6],
-  ["t4_pipe", "|", "7", "C", 3.8], // needs C
-  ["t4_tilde", "~", "7", "E", 3.7], // needs E
+const MORE_SYMBOLS: Array<[string, string, string, string]> = [
+  ["t4_backslash", "\\", "5", "C"], // needs C
+  ["t4_caret", "^", "5", "E"], // needs E
+  ["t4_underscore", "_", "5", "F"], // needs F
+  ["t4_backtick", "`", "6", "0"],
+  ["t4_pipe", "|", "7", "C"], // needs C
+  ["t4_tilde", "~", "7", "E"], // needs E
 ];
 
 function hexRequires(h1: string, h2: string): string[] {
@@ -149,8 +145,8 @@ function hexRequires(h1: string, h2: string): string[] {
   return deps;
 }
 
-function buildPatterns(entries: Array<[string, string, string, string, number]>): Pattern[] {
-  return entries.map(([id, output, h1, h2, diff]) => {
+function buildPatterns(entries: Array<[string, string, string, string]>): Pattern[] {
+  return entries.map(([id, output, h1, h2]) => {
     const hexDeps = hexRequires(h1, h2);
     // Self-referential bootstrap chars don't list themselves as requires
     const filteredDeps = hexDeps.filter(
@@ -161,7 +157,6 @@ function buildPatterns(entries: Array<[string, string, string, string, number]>)
       output,
       h1,
       h2,
-      diff,
       filteredDeps,
       `unescape("%${h1}${h2}") = "${output}"`,
     );

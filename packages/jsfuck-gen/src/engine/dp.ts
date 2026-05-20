@@ -1,5 +1,5 @@
 import type { GeneratedPart, GeneratorConfig, Pattern } from "../types.js";
-import { effectiveCost, selectPattern } from "./selector.js";
+import { selectPattern } from "./selector.js";
 
 const MAX_SEG = 8;
 
@@ -28,7 +28,7 @@ export function segmentDP(
       const currentCost = dp[i];
       if (previousCost === undefined || currentCost === undefined) continue;
 
-      const cost = previousCost + effectiveCost(selected, config.strategy);
+      const cost = previousCost + selected.expression.length;
       if (cost < currentCost) {
         dp[i] = cost;
         choice[i] = { j, pattern: selected };

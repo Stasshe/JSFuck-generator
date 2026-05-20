@@ -5,10 +5,10 @@ import type { GeneratorConfig, QuizConfig, QuizResult } from "./types.js";
 const MAX_QUIZ_ATTEMPTS = 10;
 
 function lengthRange(difficulty: number): [number, number] {
-  if (difficulty < 2.0) return [1, 2];
-  if (difficulty < 3.0) return [2, 4];
-  if (difficulty < 4.0) return [3, 6];
-  return [5, 10];
+  if (difficulty <= 2.0) return [1, 2];
+  if (difficulty <= 5.0) return [1, 3];
+  if (difficulty <= 10.0) return [2, 5];
+  return [4, 10];
 }
 
 function randomInt(min: number, max: number, rng: () => number): number {
@@ -44,7 +44,6 @@ export function generateQuiz(config: QuizConfig): QuizResult {
 
   const genConfig: GeneratorConfig = {
     difficulty: config.difficulty,
-    strategy: config.strategy,
     allowLiteral: config.allowLiteral,
     rng,
   };
@@ -55,9 +54,7 @@ export function generateQuiz(config: QuizConfig): QuizResult {
 
     if (!result.ok) continue;
 
-    const lo = config.difficulty - 0.5;
-    const hi = config.difficulty + 0.5;
-    if (result.actualDifficulty < lo || result.actualDifficulty > hi) continue;
+    if (result.actualDifficulty > config.difficulty) continue;
 
     return {
       ok: true,

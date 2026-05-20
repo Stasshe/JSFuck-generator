@@ -7,27 +7,20 @@ export type Pattern = {
   output: string;
   expression: string;
   kind: PatternKind;
-  difficulty: Difficulty;
-  weight: number;
-  cost: number;
   tags: string[];
   trapFor: string[];
   requires: string[];
   description?: string;
 };
 
-export type SelectStrategy = "random" | "shortest" | "readable";
-
 export type GeneratorConfig = {
   difficulty: Difficulty;
-  strategy: SelectStrategy;
   allowLiteral: boolean;
   rng?: () => number;
 };
 
 export type QuizConfig = {
   difficulty: Difficulty;
-  strategy: SelectStrategy;
   allowLiteral: boolean;
   length?: number;
   rng?: () => number;

@@ -14,5 +14,4 @@ export type {
   QuizConfig,
   QuizQuestion,
   QuizResult,
-  SelectStrategy,
 } from "./types.js";

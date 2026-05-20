@@ -1,5 +1,6 @@
 import { computeActualDifficulty } from "../evaluator.js";
 import { ALL_PATTERNS } from "../patterns/index.js";
+import { patternDifficulty } from "../difficulty.js";
 import type { GeneratedPart, GenerateResult, GeneratorConfig } from "../types.js";
 import { segmentDP } from "./dp.js";
 
@@ -24,7 +25,7 @@ export function generate(input: string, config: GeneratorConfig): GenerateResult
       const hasCandidates = ALL_PATTERNS.some(
         (p) =>
           p.output === ch &&
-          p.difficulty <= config.difficulty &&
+          patternDifficulty(p) <= config.difficulty &&
           (config.allowLiteral || p.kind !== "literal"),
       );
       if (!hasCandidates) unsupported.push(ch);
@@ -42,7 +43,7 @@ export function generate(input: string, config: GeneratorConfig): GenerateResult
   }
 
   const expression = partsToExpression(parts);
-  const totalCost = parts.reduce((sum, p) => sum + p.pattern.cost, 0);
+  const totalCost = parts.reduce((sum, p) => sum + p.pattern.expression.length, 0);
   const actualDifficulty = computeActualDifficulty(parts, ALL_PATTERNS);
 
   return {
