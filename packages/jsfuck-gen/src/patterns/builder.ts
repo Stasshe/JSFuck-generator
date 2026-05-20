@@ -48,8 +48,8 @@ export const STR_CTOR_FN_STR = `(""+([]+[])[${CONSTR_KEY}])`;
 export const _g = `${STR_CTOR_FN_STR}[14]`; // g
 export const _S_upper = `${STR_CTOR_FN_STR}[9]`; // S (uppercase)
 
-// "toString" key expression: t+o+s+t+r+i+n+g
-export const TOSTRING_KEY = `${_t}+${_o}+${_s}+${_t}+${_r}+${_i}+${_n}+${_g}`;
+// "toString" key expression: t+o+S+t+r+i+n+g  (S is uppercase — camelCase method name)
+export const TOSTRING_KEY = `${_t}+${_o}+${_S_upper}+${_t}+${_r}+${_i}+${_n}+${_g}`;
 
 // Number 36 as JSFuck (for toString base)
 export const BASE36 = numExpr(36);

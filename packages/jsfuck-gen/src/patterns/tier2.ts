@@ -8,7 +8,11 @@ import { letterExpr, TOSTRING_KEY, BASE36, numExpr, _g, STR_CTOR_FN_STR, FILL_FN
 // Bootstrap: 'g' from "function String() { [native code] }"[14]
 // g enables building "toString" key, enabling all toString(36) letters
 
-const TIER2_REQUIRES = ["char_f", "char_i", "char_l", "char_c", "char_o", "char_n", "char_s", "char_t", "char_r", "char_u"];
+const TIER2_REQUIRES = [
+  "char_f", "char_i", "char_l", "char_c", "char_o",
+  "char_n", "char_s", "char_t", "char_r", "char_u",
+  "t2_bootstrap_g", "t2_S_upper",
+];
 
 // letter codes: a=10, b=11, ..., z=35
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
