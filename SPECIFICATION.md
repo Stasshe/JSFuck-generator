@@ -1,5 +1,3 @@
-わかった。では書く。
-
 ---
 
 # JSFuck Quiz & Generator 仕様書 v2
@@ -9,7 +7,7 @@
 ```
 /
   packages/
-    jsfuck-gen/         # npm package: @roughfts/jsfuck-gen
+    jsfuck-gen/         # npm package: jsfuck-gen
   apps/
     web/                # Next.js static site → gh pages
   pnpm-workspace.yaml
@@ -18,7 +16,7 @@
 
 ---
 
-## 2. `@roughfts/jsfuck-gen`
+## 2. `jsfuck-gen`
 
 ### 2.1 概要
 
@@ -412,7 +410,7 @@ requires の深さに応じてインデント表示
 
 ## 8. デプロイ
 
-### 8.1 `@roughfts/jsfuck-gen`
+### 8.1 `jsfuck-gen`
 
 ```
 npm publish
