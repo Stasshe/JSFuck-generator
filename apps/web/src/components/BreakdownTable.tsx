@@ -44,7 +44,7 @@ export function BreakdownTable({ parts }: Props) {
                 </td>
                 <td className="max-w-xl px-3 py-3 align-top">
                   <code className="block break-all rounded bg-slate-100 p-2 text-xs leading-5">
-                    {part.pattern.expression}
+                    {part.resolvedExpression}
                   </code>
                 </td>
                 <td className="whitespace-nowrap px-3 py-3 align-top">

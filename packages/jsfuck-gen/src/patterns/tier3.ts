@@ -14,7 +14,7 @@ const KEY_CONSTRUCTOR_V1: Pattern = {
   output: "constructor",
   role: "key_constructor",
   expression:
-    `@{char_c}+@{char_o}+([][+[]]+[])[1]+(![]+[])[3]+(!![]+[])[+[]]+(![]+[])[1]+([][+[]]+[])[1]+(![]+[])[2]+@{char_c}+(!![]+[])[+[]]+@{char_o}+(![]+[])[1]`,
+    `@{char_c}+@{char_o}+([][+[]]+[])[1]+(![]+[])[3]+(!![]+[])[+[]]+(!![]+[])[1]+([][+[]]+[])[+[]]+@{char_c}+(!![]+[])[+[]]+@{char_o}+(!![]+[])[1]`,
   deps: ["char_c", "char_o"],
   pure: true,
   kind: "subexpr",
@@ -203,7 +203,7 @@ const KEY_TOSTRING: Pattern = {
   id: "key_tostring",
   output: "toString",
   role: "key_tostring",
-  expression: `(!![]+[])[+[]]+@{char_o}+@{char_S_upper}+(!![]+[])[+[]]+(![]+[])[1]+([][+[]]+[])[5]+([][+[]]+[])[1]+@{char_g}`,
+  expression: `(!![]+[])[+[]]+@{char_o}+@{char_S_upper}+(!![]+[])[+[]]+(!![]+[])[1]+([][+[]]+[])[5]+([][+[]]+[])[1]+@{char_g}`,
   deps: ["char_o", "char_S_upper", "char_g"],
   pure: true,
   kind: "subexpr",

@@ -93,6 +93,18 @@ describe("generate()", () => {
     }
   });
 
+  it("evaluates generated toString(36) letters", () => {
+    const result = generate("h", { difficulty: 5.0, rng: () => 0 });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.parts[0]?.pattern.tags).toContain("tostring36");
+      expect(result.parts[0]?.resolvedExpression).not.toContain("@{");
+      expect(result.expression).not.toContain("@{");
+      // biome-ignore lint/security/noGlobalEval: intentional generated expression evaluation test
+      expect(String(eval(result.expression))).toBe("h");
+    }
+  });
+
   it("rewrites numeric indexes in strict mode", () => {
     const result = generate("e", { difficulty: 1.0, strict: true, rng: () => 0 });
     expect(result.ok).toBe(true);
