@@ -101,6 +101,22 @@ export const _o = `${FILL_FN_STR}[6]`; // o
 // "constructor" key expression
 export const CONSTR_KEY = `${_c}+${_o}+${_n}+${_s}+${_t}+${_r}+${_u}+${_c}+${_t}+${_o}+${_r}`;
 
+// HTML string method keys
+// "italics" key: i+t+a+l+i+c+s
+export const ITALICS_KEY = `${_i}+${_t}+${_a}+${_l}+${_i}+${_c}+${_s}`;
+// "fontcolor" key: f+o+n+t+c+o+l+o+r
+export const FONTCOLOR_KEY = `${_f}+${_o}+${_n}+${_t}+${_c}+${_o}+${_l}+${_o}+${_r}`;
+// "concat" key: c+o+n+c+a+t
+export const CONCAT_KEY = `${_c}+${_o}+${_n}+${_c}+${_a}+${_t}`;
+
+// "".italics() = "<i></i>"
+// Indices: <(0)i(1)>(2)<(3)/(4)i(5)>(6)
+export const ITALICS_CALL = `([]+[])[${ITALICS_KEY}]()`;
+
+// "".fontcolor() = '<font color="undefined"></font>'
+// Indices: <(0)f(1)o(2)n(3)t(4) (5)c(6)o(7)l(8)o(9)r(10)=(11)"(12)u(13)n(14)d(15)e(16)f(17)i(18)n(19)e(20)d(21)"(22)>(23)<(24)/(25)f(26)o(27)n(28)t(29)>(30)
+export const FONTCOLOR_CALL = `([]+[])[${FONTCOLOR_KEY}]()`;
+
 // "function Number() { [native code] }"
 // Indices: f(0)u(1)n(2)c(3)t(4)i(5)o(6)n(7) (8)N(9)u(10)m(11)b(12)e(13)r(14)
 export const NUM_CTOR_FN_STR = `(""+((+[])[${CONSTR_KEY}]))`;

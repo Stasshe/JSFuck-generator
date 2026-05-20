@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { AT_FN_STR, CONSTR_KEY, ENTRIES_ITER_STR, FILL_FN_STR, FUNC_CTOR, NAN_STR, NUM_CTOR_FN_STR } from "./builder.js";
+import { AT_FN_STR, CONCAT_KEY, CONSTR_KEY, ENTRIES_ITER_STR, FILL_FN_STR, FONTCOLOR_CALL, FUNC_CTOR, ITALICS_CALL, NAN_STR, NUM_CTOR_FN_STR } from "./builder.js";
 
 // Tier 3: difficulty 2.5~3.5
 // Uppercase letters via constructor function strings
@@ -177,6 +177,69 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: [...T3_REQUIRES],
     description: '"function Number(){...}"[11] — m',
+  },
+  // HTML method-based chars: "".italics() = "<i></i>"
+  {
+    id: "t3_lt",
+    output: "<",
+    expression: `(${ITALICS_CALL})[+[]]`,
+    kind: "jsfuck",
+    tags: ["tier3", "symbol", "from_html"],
+    trapFor: [],
+    requires: ["char_f", "char_i", "char_l", "char_c", "char_s", "char_t"],
+    description: '"".italics()[0] = "<i></i>"[0] — less-than',
+  },
+  {
+    id: "t3_gt",
+    output: ">",
+    expression: `(${ITALICS_CALL})[2]`,
+    kind: "jsfuck",
+    tags: ["tier3", "symbol", "from_html"],
+    trapFor: [],
+    requires: ["char_f", "char_i", "char_l", "char_c", "char_s", "char_t"],
+    description: '"".italics()[2] = "<i></i>"[2] — greater-than',
+  },
+  {
+    id: "t3_slash",
+    output: "/",
+    expression: `(${ITALICS_CALL})[4]`,
+    kind: "jsfuck",
+    tags: ["tier3", "symbol", "from_html"],
+    trapFor: [],
+    requires: ["char_f", "char_i", "char_l", "char_c", "char_s", "char_t"],
+    description: '"".italics()[4] = "<i></i>"[4] — forward slash',
+  },
+  // HTML method-based chars: "".fontcolor() = '<font color="undefined"></font>'
+  {
+    id: "t3_eq",
+    output: "=",
+    expression: `(${FONTCOLOR_CALL})[11]`,
+    kind: "jsfuck",
+    tags: ["tier3", "symbol", "from_html"],
+    trapFor: [],
+    requires: ["char_f", "char_i", "char_l", "char_c", "char_o", "char_n", "char_t", "char_r"],
+    description: '"".fontcolor()[11] — equals sign',
+  },
+  {
+    id: "t3_dquote",
+    output: '"',
+    expression: `(${FONTCOLOR_CALL})[12]`,
+    kind: "jsfuck",
+    tags: ["tier3", "symbol", "from_html"],
+    trapFor: [],
+    requires: ["char_f", "char_i", "char_l", "char_c", "char_o", "char_n", "char_t", "char_r"],
+    description: '"".fontcolor()[12] — double quote',
+  },
+  // ',' via [[]]["concat"]([[]])+[] = ","
+  {
+    id: "t3_comma",
+    output: ",",
+    expression: `([[]][${CONCAT_KEY}]([[]])+[])[+[]]`,
+    kind: "jsfuck",
+    tags: ["tier3", "symbol", "from_concat"],
+    trapFor: [],
+    requires: ["char_f", "char_i", "char_l", "char_c", "char_o", "char_n", "char_t"],
+    description: '[[]].concat([[]])+[] = "," — comma via array concat',
   },
 ];
 
