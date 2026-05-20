@@ -16,7 +16,7 @@ export function candidatePatterns(
 }
 
 function expandAlternates(p: Pattern): Pattern[] {
-  return p.alternates.map((expr, i) => ({
+  return (p.alternates ?? []).map((expr, i) => ({
     ...p,
     id: `${p.id}:alt_${i}`,
     expression: expr,

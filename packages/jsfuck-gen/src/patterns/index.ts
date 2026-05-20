@@ -1,11 +1,16 @@
 import type { Pattern, PatternFilter } from "../types.js";
 import { patternDifficulty } from "../difficulty.js";
+import { generateAlternates } from "./builder.js";
 import TIER1 from "./tier1.js";
 import TIER2 from "./tier2.js";
 import TIER3 from "./tier3.js";
 import TIER4 from "./tier4.js";
 
-const ALL_PATTERNS: Pattern[] = [...TIER1, ...TIER2, ...TIER3, ...TIER4];
+function withAlternates(p: Pattern): Pattern {
+  return { ...p, alternates: p.alternates ?? generateAlternates(p.expression) };
+}
+
+const ALL_PATTERNS: Pattern[] = [...TIER1, ...TIER2, ...TIER3, ...TIER4].map(withAlternates);
 
 // Add literal fallback patterns for any ASCII printable char not covered
 function makeLiteral(ch: string): Pattern {
@@ -14,6 +19,7 @@ function makeLiteral(ch: string): Pattern {
     id: `literal_${code}`,
     output: ch,
     expression: JSON.stringify(ch),
+    alternates: [],
     kind: "literal",
     tags: ["literal", "fallback"],
     trapFor: [],

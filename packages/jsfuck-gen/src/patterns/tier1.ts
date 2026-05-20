@@ -1,18 +1,13 @@
 import type { Pattern } from "../types.js";
-import { generateAlternates } from "./builder.js";
 
 // Tier 1: difficulty 1.0~1.5
 // Characters from: false/true/undefined/NaN/Infinity/digit-arithmetic
 // Note: primitives must be coerced to string before indexing
 // e.g. (![]+[])[0] = "false"[0] = 'f'  NOT  (![])[0] which is undefined
 
-function t1(p: Omit<Pattern, "alternates">): Pattern {
-  return { ...p, alternates: generateAlternates(p.expression) };
-}
-
 const TIER1: Pattern[] = [
   // ===== from "false" (![]+[]) =====
-  t1({
+  {
     id: "char_f",
     output: "f",
     expression: "(![]+[])[+[]]",
@@ -21,8 +16,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"false"[0]',
-  }),
-  t1({
+  },
+  {
     id: "char_a",
     output: "a",
     expression: "(![]+[])[1]",
@@ -31,8 +26,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"false"[1]',
-  }),
-  t1({
+  },
+  {
     id: "char_l",
     output: "l",
     expression: "(![]+[])[2]",
@@ -41,8 +36,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"false"[2]',
-  }),
-  t1({
+  },
+  {
     id: "char_s",
     output: "s",
     expression: "(![]+[])[3]",
@@ -51,8 +46,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"false"[3]',
-  }),
-  t1({
+  },
+  {
     id: "char_e",
     output: "e",
     expression: "(![]+[])[4]",
@@ -61,9 +56,9 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"false"[4]',
-  }),
+  },
   // ===== from "true" (!![]+[]) =====
-  t1({
+  {
     id: "char_t",
     output: "t",
     expression: "(!![]+[])[+[]]",
@@ -72,8 +67,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"true"[0]',
-  }),
-  t1({
+  },
+  {
     id: "char_r",
     output: "r",
     expression: "(!![]+[])[1]",
@@ -82,8 +77,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"true"[1]',
-  }),
-  t1({
+  },
+  {
     id: "char_u",
     output: "u",
     expression: "(!![]+[])[2]",
@@ -92,9 +87,9 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"true"[2]',
-  }),
+  },
   // ===== from "undefined" ([][+[]]+[]) =====
-  t1({
+  {
     id: "char_n",
     output: "n",
     expression: "([][+[]]+[])[1]",
@@ -103,8 +98,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"undefined"[1]',
-  }),
-  t1({
+  },
+  {
     id: "char_d",
     output: "d",
     expression: "([][+[]]+[])[2]",
@@ -113,8 +108,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"undefined"[2]',
-  }),
-  t1({
+  },
+  {
     id: "char_i",
     output: "i",
     expression: "([][+[]]+[])[5]",
@@ -123,9 +118,9 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"undefined"[5]',
-  }),
+  },
   // ===== from "NaN" (+{}+[]) =====
-  t1({
+  {
     id: "char_N_upper",
     output: "N",
     expression: "(+{}+[])[+[]]",
@@ -134,8 +129,8 @@ const TIER1: Pattern[] = [
     trapFor: ["char_n"],
     requires: [],
     description: '"NaN"[0] — uppercase N, easy to confuse with lowercase n',
-  }),
-  t1({
+  },
+  {
     id: "char_a_nan",
     output: "a",
     expression: "(+{}+[])[1]",
@@ -144,9 +139,9 @@ const TIER1: Pattern[] = [
     trapFor: ["char_a"],
     requires: [],
     description: '"NaN"[1] — alternate source for a',
-  }),
+  },
   // ===== from "Infinity" (1/0+[]) =====
-  t1({
+  {
     id: "char_I_upper",
     output: "I",
     expression: "(1/0+[])[+[]]",
@@ -155,8 +150,8 @@ const TIER1: Pattern[] = [
     trapFor: ["char_i"],
     requires: [],
     description: '"Infinity"[0] — uppercase I, easy to confuse with lowercase i',
-  }),
-  t1({
+  },
+  {
     id: "char_y",
     output: "y",
     expression: "(1/0+[])[7]",
@@ -165,9 +160,9 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"Infinity"[7]',
-  }),
+  },
   // ===== digit strings via arithmetic =====
-  t1({
+  {
     id: "digit_0",
     output: "0",
     expression: "+[]+[]",
@@ -176,8 +171,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "0 coerced to string",
-  }),
-  t1({
+  },
+  {
     id: "digit_1",
     output: "1",
     expression: "+!![]+[]",
@@ -186,8 +181,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "1 coerced to string",
-  }),
-  t1({
+  },
+  {
     id: "digit_2",
     output: "2",
     expression: "!![]+!![]+[]",
@@ -196,8 +191,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "true+true coerced to string",
-  }),
-  t1({
+  },
+  {
     id: "digit_3",
     output: "3",
     expression: "!![]+!![]+!![]+[]",
@@ -206,8 +201,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "true*3 coerced to string",
-  }),
-  t1({
+  },
+  {
     id: "digit_4",
     output: "4",
     expression: "!![]+!![]+!![]+!![]+[]",
@@ -216,8 +211,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "true*4 coerced to string",
-  }),
-  t1({
+  },
+  {
     id: "digit_5",
     output: "5",
     expression: '"5"',
@@ -226,8 +221,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "literal digit string",
-  }),
-  t1({
+  },
+  {
     id: "digit_6",
     output: "6",
     expression: '"6"',
@@ -236,8 +231,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "literal digit string",
-  }),
-  t1({
+  },
+  {
     id: "digit_7",
     output: "7",
     expression: '"7"',
@@ -246,8 +241,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "literal digit string",
-  }),
-  t1({
+  },
+  {
     id: "digit_8",
     output: "8",
     expression: '"8"',
@@ -256,8 +251,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "literal digit string",
-  }),
-  t1({
+  },
+  {
     id: "digit_9",
     output: "9",
     expression: '"9"',
@@ -266,9 +261,9 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "literal digit string",
-  }),
+  },
   // ===== from "[object Object]" ([]+{}) =====
-  t1({
+  {
     id: "char_O_upper",
     output: "O",
     expression: "([]+{})[8]",
@@ -277,9 +272,9 @@ const TIER1: Pattern[] = [
     trapFor: ["char_o"],
     requires: [],
     description: '"[object Object]"[8] — uppercase O',
-  }),
+  },
   // ===== space from [object Object] =====
-  t1({
+  {
     id: "char_space",
     output: " ",
     expression: "([]+{})[7]",
@@ -288,11 +283,11 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '"[object Object]"[7] — space character',
-  }),
+  },
   // ===== c and o from fill function string =====
   // ([]["fill"]+[]) = "function fill() { [native code] }"
   // Requires f(0),i(1),l(2),l(3) from tier1 to build "fill" key
-  t1({
+  {
     id: "char_c",
     output: "c",
     expression: "([][(![]+[])[+[]]+([][+[]]+[])[5]+(![]+[])[2]+(![]+[])[2]]+[])[3]",
@@ -301,8 +296,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: ["char_f", "char_i", "char_l"],
     description: '"function fill(){[native code]}"[3] — c',
-  }),
-  t1({
+  },
+  {
     id: "char_o",
     output: "o",
     expression: "([][(![]+[])[+[]]+([][+[]]+[])[5]+(![]+[])[2]+(![]+[])[2]]+[])[6]",
@@ -311,11 +306,11 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: ["char_f", "char_i", "char_l"],
     description: '"function fill(){[native code]}"[6] — o',
-  }),
+  },
   // ===== primitive strings as whole =====
   // These are much cheaper than char-by-char when the substring appears in input.
   // e.g. "false" as (![]+[]) = 8 chars vs f+a+l+s+e = ~66 chars
-  t1({
+  {
     id: "str_false",
     output: "false",
     expression: "(![]+[])",
@@ -324,8 +319,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "false coerced to string",
-  }),
-  t1({
+  },
+  {
     id: "str_true",
     output: "true",
     expression: "(!![]+[])",
@@ -334,8 +329,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "true coerced to string",
-  }),
-  t1({
+  },
+  {
     id: "str_nan",
     output: "NaN",
     expression: "(+{}+[])",
@@ -344,8 +339,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "NaN coerced to string",
-  }),
-  t1({
+  },
+  {
     id: "str_infinity",
     output: "Infinity",
     expression: "(1/0+[])",
@@ -354,8 +349,8 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "Infinity coerced to string",
-  }),
-  t1({
+  },
+  {
     id: "str_undefined",
     output: "undefined",
     expression: "([][+[]]+[])",
@@ -364,7 +359,7 @@ const TIER1: Pattern[] = [
     trapFor: [],
     requires: [],
     description: "undefined coerced to string",
-  }),
+  },
 ];
 
 export default TIER1;
