@@ -6,5 +6,8 @@ export function computeActualDifficulty(
   _allPatterns: Pattern[],
 ): Difficulty {
   if (parts.length === 0) return 1.0;
-  return parts.reduce((sum, part) => sum + partDifficulty(part), 0);
+  const totalChars = parts.reduce((s, p) => s + p.segment.length, 0);
+  if (totalChars === 0) return 1.0;
+  const total = parts.reduce((sum, part) => sum + partDifficulty(part), 0);
+  return total / totalChars;
 }

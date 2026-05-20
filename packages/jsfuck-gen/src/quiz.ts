@@ -1,5 +1,6 @@
 import { generate } from "./engine/generator.js";
 import { getPatterns } from "./patterns/index.js";
+import { patternTier } from "./difficulty.js";
 import type { GeneratorConfig, QuizConfig, QuizResult } from "./types.js";
 
 const MAX_QUIZ_ATTEMPTS = 10;
@@ -23,11 +24,10 @@ function buildQuizString(
   allowLiteral: boolean,
   rng: () => number,
 ): string {
-  const filter = {
-    difficulty: { max: difficulty },
-    ...(allowLiteral ? {} : { kind: "jsfuck" as const }),
-  };
-  const candidates = getPatterns(filter).filter((p) => p.output.length === 1 && p.kind !== "literal");
+  const candidates = getPatterns()
+    .filter((p) => p.output.length === 1)
+    .filter((p) => (allowLiteral ? true : p.kind !== "literal"))
+    .filter((p) => patternTier(p) <= difficulty);
 
   if (candidates.length === 0) return "a";
 

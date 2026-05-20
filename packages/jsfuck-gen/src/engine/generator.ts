@@ -1,6 +1,6 @@
 import { computeActualDifficulty } from "../evaluator.js";
 import { ALL_PATTERNS } from "../patterns/index.js";
-import { patternDifficulty } from "../difficulty.js";
+import { patternTier } from "../difficulty.js";
 import type { GeneratedPart, GenerateResult, GeneratorConfig } from "../types.js";
 import { segmentDP } from "./dp.js";
 
@@ -21,12 +21,12 @@ export function generate(input: string, config: GeneratorConfig): GenerateResult
     // Find which chars have no candidates
     const unsupported: string[] = [];
     for (const ch of input) {
-      const hasCandidates = ALL_PATTERNS.some(
-        (p) =>
-          p.output === ch &&
-          patternDifficulty(p) <= config.difficulty &&
-          (config.allowLiteral || p.kind !== "literal"),
-      );
+      const hasCandidates = ALL_PATTERNS.some((p) => {
+        if (p.output !== ch) return false;
+        if (!config.allowLiteral && p.kind === "literal") return false;
+        // config.difficulty is per-character target; compare against pattern tier
+        return patternTier(p) <= config.difficulty;
+      });
       if (!hasCandidates) unsupported.push(ch);
     }
 

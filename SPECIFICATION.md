@@ -55,7 +55,7 @@ type Pattern = {
 }
 
 type GeneratorConfig = {
-  difficulty: Difficulty
+  difficulty: Difficulty  // UI/Config上の difficulty は「1文字あたりの目標難易度」を表す
   allowLiteral: boolean
   rng?: () => number      // 省略時は Math.random
 }
@@ -173,7 +173,7 @@ suffixCost[n] = 0
 rawCandidates =
   patterns
     .filter(p => p.output === segment)
-    .filter(p => patternDifficulty(p) <= config.difficulty)
+    .filter(p => patternTier(p) <= config.difficulty) // config.difficulty は1文字あたりの目標難易度のため、pattern の tier と比較する
     .filter(p => config.allowLiteral || p.kind !== "literal")
 
 minLength = min(rawCandidates.map(p => p.expression.length))
@@ -195,31 +195,34 @@ MAX_SEG = 8   // セグメント長の上限。辞書の最大output長に合わ
 
 選ばれた `{ j, pattern }` を順に `GeneratedPart[]` へ追加する。
 
-### 4.2 パターン候補
+### 5. 品質評価器
 
-各セグメントに対する候補フィルタリング：
+### 5.1 実効難易度の計算（1文字あたりの難易度）
 
-```
-candidates =
-  patterns
-    .filter(p => p.output === segment)
-    .filter(p => patternDifficulty(p) <= config.difficulty)
-    .filter(p => config.allowLiteral || p.kind !== "literal")
-```
+UI/Config 上の `difficulty` は「1文字あたりの目標難易度」を表す。生成・クイズ双方で内部比較はパターンの `tier`（1..4、literal は5）を用いて行う。
 
-候補が複数ある場合でも、式長が最短候補から大きく離れるものは生成時に使わない。これにより、高難易度で `toString(36)` などの長い別経路が解禁されても、既に短く表現できる文字が過剰に長い式へ置き換わることを防ぐ。
-
-生成時には、既存パターンを直接変更せず、名前付きの同値変形ルールで候補を展開する。長さ上限は通常候補と同じ `boundedVarietyPool` で制限する。
-
-同値変形ルールの例：
+生成結果の `actualDifficulty` は、生成された全文字に対する「1文字あたりの実効難易度」の平均で算出する。
 
 ```
-primitive-source:
-  (![]+[])      <=> (!+!![]+[])       // false string
-  (!![]+[])     <=> (!+[]+[])         // true string
-  ([][+[]]+[])  <=> ([][[]]+[])       // undefined string
-  (+{}+[])      <=> (+[{}]+[])        // NaN string
-  (1/0+[])      <=> (+!![]/+[]+[])    // Infinity string
+partPerCharDifficulty(part) = patternTier(part)   // 1文字あたりの難易度
+totalChars = sum(part.segment.length for part in parts)
+actualDifficulty = (sum(partPerCharDifficulty(part) * part.segment.length for part in parts)) / totalChars
+```
+
+ここで `patternTier` は `tier1`〜`tier4` タグから決定する。`literal` パターンは `patternTier = 5` として扱う。
+
+### 5.2 クイズ品質チェック
+
+Quiz生成時は、上記で定義した1文字あたりの `actualDifficulty` と、`config.difficulty`（目標の1文字あたり難易度）の差分が許容誤差内であることを確認する。
+
+```
+abs(actualDifficulty - targetDifficulty) <= DIFFICULTY_TOLERANCE
+DIFFICULTY_TOLERANCE = 1
+```
+
+ただし `targetDifficulty` が最大値（20）の場合、上方向の誤差は無制限に許容する。下方向は通常どおり `DIFFICULTY_TOLERANCE` を適用する。
+
+収まらない場合は再生成する。最大試行回数は `MAX_QUIZ_ATTEMPTS = 10`。超過した場合は `QuizResult.ok: false` を返す。
 
 numeric-index:
   [0] <=> [+[]] <=> [+![]] <=> [[]-[]]
