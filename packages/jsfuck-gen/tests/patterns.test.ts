@@ -10,54 +10,43 @@ describe("Pattern dictionary integrity", () => {
     expect(unique.size).toBe(ids.length);
   });
 
-  it("requires IDs all exist in dictionary", () => {
-    const idSet = new Set(ALL_PATTERNS.map((p) => p.id));
+  it("deps roles all exist in ALL_PATTERNS", () => {
+    const roleSet = new Set(ALL_PATTERNS.filter((p) => p.role).map((p) => p.role!));
     for (const p of ALL_PATTERNS) {
-      for (const req of p.requires) {
-        expect(idSet.has(req), `${p.id} requires "${req}" which does not exist`).toBe(true);
-      }
-    }
-  });
-
-  it("trapFor IDs all exist in dictionary", () => {
-    const idSet = new Set(ALL_PATTERNS.map((p) => p.id));
-    for (const p of ALL_PATTERNS) {
-      for (const trap of p.trapFor) {
-        expect(idSet.has(trap), `${p.id} trapFor "${trap}" which does not exist`).toBe(true);
-      }
-    }
-  });
-
-  it("requires difficulty <= own difficulty", () => {
-    const patternMap = new Map(ALL_PATTERNS.map((p) => [p.id, p]));
-    for (const p of ALL_PATTERNS) {
-      for (const req of p.requires) {
-        const reqPattern = patternMap.get(req)!;
+      for (const dep of (p.deps ?? [])) {
         expect(
-          patternDifficulty(reqPattern),
-          `${p.id} (diff=${patternDifficulty(p)}) requires ${req} (diff=${patternDifficulty(reqPattern)}) which has higher difficulty`,
-        ).toBeLessThanOrEqual(patternDifficulty(p));
+          roleSet.has(dep),
+          `${p.id} deps on role "${dep}" which has no pattern`,
+        ).toBe(true);
       }
     }
   });
 
-  it("no circular dependencies", () => {
-    const patternMap = new Map(ALL_PATTERNS.map((p) => [p.id, p]));
+  it("no circular deps (DAG check)", () => {
+    const byRole = new Map<string, Pattern[]>();
+    for (const p of ALL_PATTERNS) {
+      if (!p.role) continue;
+      const list = byRole.get(p.role) ?? [];
+      list.push(p);
+      byRole.set(p.role, list);
+    }
 
-    function hasCycle(id: string, visiting: Set<string>): boolean {
-      if (visiting.has(id)) return true;
-      const p = patternMap.get(id);
-      if (!p || p.requires.length === 0) return false;
-      visiting.add(id);
-      for (const req of p.requires) {
-        if (hasCycle(req, visiting)) return true;
+    function hasCycle(role: string, visiting: Set<string>): boolean {
+      if (visiting.has(role)) return true;
+      const patterns = byRole.get(role) ?? [];
+      visiting.add(role);
+      for (const p of patterns) {
+        for (const dep of (p.deps ?? [])) {
+          if (hasCycle(dep, new Set(visiting))) return true;
+        }
       }
-      visiting.delete(id);
       return false;
     }
 
     for (const p of ALL_PATTERNS) {
-      expect(hasCycle(p.id, new Set()), `${p.id} has circular dependency`).toBe(false);
+      if (p.role) {
+        expect(hasCycle(p.role, new Set()), `role "${p.role}" has circular dep`).toBe(false);
+      }
     }
   });
 
@@ -67,23 +56,26 @@ describe("Pattern dictionary integrity", () => {
     }
   });
 
-  // Spot-check: at least one pattern per output char for printable ASCII
-  it("covers all printable ASCII with at least one pattern", () => {
-    const covered = new Set(ALL_PATTERNS.map((p) => p.output));
+  it("covers all printable ASCII with at least one jsfuck pattern", () => {
+    const covered = new Set(
+      ALL_PATTERNS.filter((p) => p.kind === "jsfuck").map((p) => p.output),
+    );
     for (let code = 0x20; code <= 0x7e; code++) {
       const ch = String.fromCharCode(code);
       expect(
         covered.has(ch),
-        `No pattern for char: ${JSON.stringify(ch)} (0x${code.toString(16)})`,
+        `No jsfuck pattern for char: ${JSON.stringify(ch)} (0x${code.toString(16)})`,
       ).toBe(true);
     }
   });
 });
 
 describe("Pattern expression correctness (eval)", () => {
-  // Only test tier1 and tier2 patterns to keep test time reasonable
-  // Tier3/tier4 expressions are extremely long but follow the same pattern
-  const testable = ALL_PATTERNS.filter((p) => p.tags.includes("tier1") || p.tags.includes("tier2"));
+  // subexpr パターンは @{...} プレースホルダーを含むため直接 eval 不可 → スキップ
+  // tier1 のみ eval テスト（すべて自己完結した式）
+  const testable = ALL_PATTERNS.filter(
+    (p) => p.kind === "jsfuck" && p.tags.includes("tier1") && !p.expression.includes("@{"),
+  );
 
   it.each(
     testable.map((p) => [p.id, p] as [string, Pattern]),

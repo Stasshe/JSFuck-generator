@@ -9,7 +9,7 @@ export function generate(input: string, config: GeneratorConfig): GenerateResult
     return {
       ok: true,
       output: "",
-      expression: "[]+ []",
+      expression: "[]+[]",
       parts: [],
       actualDifficulty: 1.0,
     };
@@ -18,13 +18,12 @@ export function generate(input: string, config: GeneratorConfig): GenerateResult
   const parts = segmentDP(input, ALL_PATTERNS, config);
 
   if (parts === null) {
-    // Find which chars have no candidates
     const unsupported: string[] = [];
     for (const ch of input) {
       const hasCandidates = ALL_PATTERNS.some((p) => {
+        if (p.kind !== "jsfuck") return false;
         if (p.output !== ch) return false;
-        if (!config.allowLiteral && p.kind === "literal") return false;
-        // config.difficulty is per-character target; compare against pattern tier
+        if (config.strict && !p.pure) return false;
         return patternTier(p) <= config.difficulty;
       });
       if (!hasCandidates) unsupported.push(ch);
@@ -54,6 +53,5 @@ export function generate(input: string, config: GeneratorConfig): GenerateResult
 }
 
 function partsToExpression(parts: GeneratedPart[]): string {
-  // Wrap each part in parens to prevent ++ misparse when expressions start with +
-  return parts.map((p) => `(${p.pattern.expression})`).join("+");
+  return parts.map((p) => `(${p.resolvedExpression})`).join("+");
 }

@@ -1,117 +1,235 @@
 import type { Pattern } from "../types.js";
-import { CONSTR_KEY, FUNC_CTOR, unescapeCharExpr } from "./builder.js";
 
-// Tier 4: difficulty 3.5~5.0
-// escape/unescape based character access for remaining ASCII chars
-// Prerequisite: Tier 3 (Function constructor, uppercase A, B, F)
+// Tier 4: difficulty 4~5
+// escape/unescape 経由の文字。Prerequisite: func_ctor, tier3 uppercase
 
-// Hex digit char expressions
-// Digits 0-9: from tier1
+// ===== return_escape_str: "return escape" 文字列式 =====
+const RETURN_ESCAPE_STR_EXPR = [
+  `(!![]+[])[1]`,         // r
+  `(![]+[])[4]`,          // e
+  `(!![]+[])[+[]]`,       // t
+  `(!![]+[])[2]`,         // u
+  `(!![]+[])[1]`,         // r
+  `([][+[]]+[])[1]`,      // n
+  `([]+{})[7]`,           // space
+  `(![]+[])[4]`,          // e
+  `(![]+[])[3]`,          // s
+  `@{char_c}`,            // c
+  `(![]+[])[1]`,          // a
+  `@{char_p}`,            // p
+  `(![]+[])[4]`,          // e
+].join("+");
+
+// return_unescape_str
+const RETURN_UNESCAPE_STR_EXPR = [
+  `(!![]+[])[1]`,         // r
+  `(![]+[])[4]`,          // e
+  `(!![]+[])[+[]]`,       // t
+  `(!![]+[])[2]`,         // u
+  `(!![]+[])[1]`,         // r
+  `([][+[]]+[])[1]`,      // n
+  `([]+{})[7]`,           // space
+  `(!![]+[])[2]`,         // u
+  `([][+[]]+[])[1]`,      // n
+  `(![]+[])[4]`,          // e
+  `(![]+[])[3]`,          // s
+  `@{char_c}`,            // c
+  `(![]+[])[1]`,          // a
+  `@{char_p}`,            // p
+  `(![]+[])[4]`,          // e
+].join("+");
+
+// char_p: (25).toString(36) = "p"
+// この deps は key_tostring, base36 に依存するため tier3 以降
+const CHAR_P: Pattern = {
+  id: "char_p",
+  output: "p",
+  role: "char_p",
+  expression: `((!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![])[@{key_tostring}](@{base36}))`,
+  deps: ["key_tostring", "base36"],
+  pure: true,
+  kind: "jsfuck",
+  tags: ["tier4", "tostring36"],
+  description: "(25).toString(36) = p",
+};
+
+const RETURN_ESCAPE_STR: Pattern = {
+  id: "return_escape_str",
+  output: "return escape",
+  role: "return_escape_str",
+  expression: RETURN_ESCAPE_STR_EXPR,
+  deps: ["char_c", "char_p"],
+  pure: true,
+  kind: "subexpr",
+  tags: ["tier4", "eval_str"],
+  description: '"return escape" as JSFuck string — used to obtain escape fn via Function()',
+};
+
+const RETURN_UNESCAPE_STR: Pattern = {
+  id: "return_unescape_str",
+  output: "return unescape",
+  role: "return_unescape_str",
+  expression: RETURN_UNESCAPE_STR_EXPR,
+  deps: ["char_c", "char_p"],
+  pure: true,
+  kind: "subexpr",
+  tags: ["tier4", "eval_str"],
+  description: '"return unescape" as JSFuck string — used to obtain unescape fn via Function()',
+};
+
+// escape_fn: Function("return escape")()
+const ESCAPE_FN: Pattern = {
+  id: "escape_fn",
+  output: "escape",
+  role: "escape_fn",
+  expression: `@{func_ctor}(@{return_escape_str})()`,
+  deps: ["func_ctor", "return_escape_str"],
+  pure: true,
+  kind: "subexpr",
+  tags: ["tier4", "fn"],
+  description: 'Function("return escape")() = escape function',
+};
+
+// unescape_fn: Function("return unescape")()
+const UNESCAPE_FN: Pattern = {
+  id: "unescape_fn",
+  output: "unescape",
+  role: "unescape_fn",
+  expression: `@{func_ctor}(@{return_unescape_str})()`,
+  deps: ["func_ctor", "return_unescape_str"],
+  pure: true,
+  kind: "subexpr",
+  tags: ["tier4", "fn"],
+  description: 'Function("return unescape")() = unescape function',
+};
+
+// percent: escape(' ')[0] = '%'
+const PERCENT: Pattern = {
+  id: "percent_expr",
+  output: "%",
+  role: "percent_expr",
+  expression: `(@{escape_fn})(([]+{})[7])[+[]]`,
+  deps: ["escape_fn"],
+  pure: true,
+  kind: "subexpr",
+  tags: ["tier4", "symbol_expr"],
+  description: "escape(' ')[0] = '%'",
+};
+
+// unescape("%XX") によって文字を得るパターンを生成
+function makeUnescapePattern(
+  id: string,
+  output: string,
+  hex1Expr: string,
+  hex2Expr: string,
+  extraDeps: string[],
+  description: string,
+): Pattern {
+  return {
+    id,
+    output,
+    role: id,
+    expression: `(@{unescape_fn})(@{percent_expr}+${hex1Expr}+${hex2Expr})`,
+    deps: ["unescape_fn", "percent_expr", ...extraDeps],
+    pure: true,
+    kind: "jsfuck",
+    tags: ["tier4", "unescape"],
+    description,
+  };
+}
+
+// Hex digit 式（tier1 算術 + tier3 uppercase）
+// 0-4: pure arithmetic, 5-9: via role (digit_5 等)
 const H: Record<string, string> = {
   "0": "+[]+[]",
   "1": "+!![]+[]",
   "2": "!![]+!![]+[]",
   "3": "!![]+!![]+!![]+[]",
   "4": "!![]+!![]+!![]+!![]+[]",
-  "5": '"5"',
-  "6": '"6"',
-  "7": '"7"',
-  "8": '"8"',
-  "9": '"9"',
-  // A-F uppercase hex digits from tier3
-  A: `(""+[][${CONSTR_KEY}])[9]`, // 'A' from Array constructor fn string
-  B: `(""+(![])[${CONSTR_KEY}])[9]`, // 'B' from Boolean constructor fn string
-  // C: obtained from unescape("%43") — see below
-  // D: obtained from unescape("%44")
-  // E: obtained from unescape("%45")
-  F: `(""+${FUNC_CTOR})[9]`, // 'F' from Function constructor fn string
+  "5": "@{digit_5}",
+  "6": "@{digit_6}",
+  "7": "@{digit_7}",
+  "8": "@{digit_8}",
+  "9": "@{digit_9}",
+  // A-F: tier3 uppercase
+  A: `@{char_A_upper}`,
+  B: `@{char_B_upper}`,
+  // C, D, E: unescape bootstrap (%43, %44, %45)
+  C: `@{t4_C_upper}`,
+  D: `@{t4_D_upper}`,
+  E: `@{t4_E_upper}`,
+  F: `@{char_F_upper}`,
 };
+
+function hexDeps(h1: string, h2: string): string[] {
+  const deps: string[] = [];
+  const addDep = (h: string) => {
+    if (h === "5") deps.push("digit_5");
+    else if (h === "6") deps.push("digit_6");
+    else if (h === "7") deps.push("digit_7");
+    else if (h === "8") deps.push("digit_8");
+    else if (h === "9") deps.push("digit_9");
+    else if (h === "A") deps.push("char_A_upper");
+    else if (h === "B") deps.push("char_B_upper");
+    else if (h === "C") deps.push("t4_C_upper");
+    else if (h === "D") deps.push("t4_D_upper");
+    else if (h === "E") deps.push("t4_E_upper");
+    else if (h === "F") deps.push("char_F_upper");
+  };
+  addDep(h1);
+  addDep(h2);
+  return [...new Set(deps)];
+}
 
 function getHex(k: string): string {
   const v = H[k];
-  if (v === undefined) throw new Error(`Missing hex expr for key: ${k}`);
+  if (v === undefined) throw new Error(`Missing hex expr for: ${k}`);
   return v;
 }
 
-// Bootstrap: C, D, E need only digit hex codes
-const BOOTSTRAP_C = unescapeCharExpr(getHex("4"), getHex("3")); // %43 = 'C'
-const BOOTSTRAP_D = unescapeCharExpr(getHex("4"), getHex("4")); // %44 = 'D'
-const BOOTSTRAP_E = unescapeCharExpr(getHex("4"), getHex("5")); // %45 = 'E'
+// Bootstrap: C, D, E — hex コードが 0-4 のみで構成されるため依存なし
+const BOOTSTRAP_C = makeUnescapePattern(
+  "t4_C_upper", "C", getHex("4"), getHex("3"), [],
+  "unescape('%43') = C",
+);
+const BOOTSTRAP_D = makeUnescapePattern(
+  "t4_D_upper", "D", getHex("4"), getHex("4"), [],
+  "unescape('%44') = D",
+);
+const BOOTSTRAP_E = makeUnescapePattern(
+  "t4_E_upper", "E", getHex("4"), getHex("5"), ["digit_5"],
+  "unescape('%45') = E",
+);
 
-H["C"] = BOOTSTRAP_C;
-H["D"] = BOOTSTRAP_D;
-H["E"] = BOOTSTRAP_E;
-
-// Helper: build unescape pattern
-function makeUnescape(
-  id: string,
-  output: string,
-  hex1: string,
-  hex2: string,
-  extraRequires: string[],
-  description: string,
-): Pattern {
-  const expr = unescapeCharExpr(getHex(hex1), getHex(hex2));
-  return {
-    id,
-    output,
-    expression: expr,
-    kind: "jsfuck",
-    tags: ["tier4", "unescape"],
-    trapFor: [],
-    requires: [
-      "char_f",
-      "char_i",
-      "char_l",
-      "char_c",
-      "char_o",
-      "char_n",
-      "char_s",
-      "char_t",
-      "char_r",
-      "char_u",
-      "t2_bootstrap_g",
-      "t2_p",
-      ...extraRequires,
-    ],
-    description,
-  };
-}
-
-// Symbols with hex codes using only 0-9 in both positions
+// Symbols: hex コードが 2X, 3X
 const DIGIT_ONLY_SYMBOLS: Array<[string, string, string, string]> = [
   ["t4_excl", "!", "2", "1"],
-  ["t4_dquote", '"', "2", "2"],
   ["t4_hash", "#", "2", "3"],
   ["t4_dollar", "$", "2", "4"],
-  ["t4_percent", "%", "2", "5"],
+  ["t4_percent_char", "%", "2", "5"],
   ["t4_amp", "&", "2", "6"],
   ["t4_squote", "'", "2", "7"],
-  ["t4_star", "*", "2", "A"], // needs A from tier3
-  ["t4_plus", "+", "2", "B"], // needs B from tier3
-  ["t4_comma", ",", "2", "C"], // needs C (bootstrap)
-  ["t4_minus", "-", "2", "D"], // needs D (bootstrap)
-  ["t4_slash", "/", "2", "F"], // needs F from tier3
-  ["t4_colon", ":", "3", "A"], // needs A
-  ["t4_semi", ";", "3", "B"], // needs B
-  ["t4_lt", "<", "3", "C"], // needs C
-  ["t4_eq", "=", "3", "D"], // needs D
-  ["t4_gt", ">", "3", "E"], // needs E
-  ["t4_quest", "?", "3", "F"], // needs F
-  ["t4_at", "@", "4", "0"],
+  ["t4_star", "*", "2", "A"],
+  ["t4_plus", "+", "2", "B"],
+  ["t4_comma_unescape", ",", "2", "C"],
+  ["t4_minus", "-", "2", "D"],
+  ["t4_slash_unescape", "/", "2", "F"],
+  ["t4_colon", ":", "3", "A"],
+  ["t4_semi", ";", "3", "B"],
+  ["t4_lt_unescape", "<", "3", "C"],
+  ["t4_eq_unescape", "=", "3", "D"],
+  ["t4_gt_unescape", ">", "3", "E"],
+  ["t4_quest", "?", "3", "F"],
+  ["t4_at_char", "@", "4", "0"],
 ];
 
-// Uppercase letters C-Z via unescape
 const UPPERCASE_HEX: Array<[string, string, string, string]> = [
-  ["t4_C_upper", "C", "4", "3"],
-  ["t4_D_upper", "D", "4", "4"],
-  ["t4_E_upper", "E", "4", "5"],
   ["t4_G_upper", "G", "4", "7"],
   ["t4_H_upper", "H", "4", "8"],
-  ["t4_J_upper", "J", "4", "A"], // needs A
-  ["t4_K_upper", "K", "4", "B"], // needs B
-  ["t4_L_upper", "L", "4", "C"], // needs C (bootstrap)
-  ["t4_M_upper", "M", "4", "D"], // needs D (bootstrap)
+  ["t4_J_upper", "J", "4", "A"],
+  ["t4_K_upper", "K", "4", "B"],
+  ["t4_L_upper", "L", "4", "C"],
+  ["t4_M_upper", "M", "4", "D"],
   ["t4_P_upper", "P", "5", "0"],
   ["t4_Q_upper", "Q", "5", "1"],
   ["t4_R_upper", "R", "5", "2"],
@@ -121,49 +239,38 @@ const UPPERCASE_HEX: Array<[string, string, string, string]> = [
   ["t4_W_upper", "W", "5", "7"],
   ["t4_X_upper", "X", "5", "8"],
   ["t4_Y_upper", "Y", "5", "9"],
-  ["t4_Z_upper", "Z", "5", "A"], // needs A
+  ["t4_Z_upper", "Z", "5", "A"],
 ];
 
-// More symbols
 const MORE_SYMBOLS: Array<[string, string, string, string]> = [
-  ["t4_backslash", "\\", "5", "C"], // needs C
-  ["t4_caret", "^", "5", "E"], // needs E
-  ["t4_underscore", "_", "5", "F"], // needs F
+  ["t4_backslash", "\\", "5", "C"],
+  ["t4_caret", "^", "5", "E"],
+  ["t4_underscore", "_", "5", "F"],
   ["t4_backtick", "`", "6", "0"],
-  ["t4_pipe", "|", "7", "C"], // needs C
-  ["t4_tilde", "~", "7", "E"], // needs E
+  ["t4_pipe", "|", "7", "C"],
+  ["t4_tilde", "~", "7", "E"],
 ];
-
-function hexRequires(h1: string, h2: string): string[] {
-  const deps: string[] = [];
-  if (h1 === "A" || h2 === "A") deps.push("t3_A_upper");
-  if (h1 === "B" || h2 === "B") deps.push("t3_B_upper");
-  if (h1 === "C" || h2 === "C") deps.push("t4_C_upper");
-  if (h1 === "D" || h2 === "D") deps.push("t4_D_upper");
-  if (h1 === "E" || h2 === "E") deps.push("t4_E_upper");
-  if (h1 === "F" || h2 === "F") deps.push("t3_F_upper");
-  return deps;
-}
 
 function buildPatterns(entries: Array<[string, string, string, string]>): Pattern[] {
   return entries.map(([id, output, h1, h2]) => {
-    const hexDeps = hexRequires(h1, h2);
-    // Self-referential bootstrap chars don't list themselves as requires
-    const filteredDeps = hexDeps.filter(
-      (dep) => dep !== id && !(id === "t4_C_upper" && dep === "t4_C_upper"),
-    );
-    return makeUnescape(
-      id,
-      output,
-      h1,
-      h2,
-      filteredDeps,
+    const extraDeps = hexDeps(h1, h2).filter((d) => d !== id);
+    return makeUnescapePattern(
+      id, output, getHex(h1), getHex(h2), extraDeps,
       `unescape("%${h1}${h2}") = "${output}"`,
     );
   });
 }
 
 const TIER4: Pattern[] = [
+  CHAR_P,
+  RETURN_ESCAPE_STR,
+  RETURN_UNESCAPE_STR,
+  ESCAPE_FN,
+  UNESCAPE_FN,
+  PERCENT,
+  BOOTSTRAP_C,
+  BOOTSTRAP_D,
+  BOOTSTRAP_E,
   ...buildPatterns(DIGIT_ONLY_SYMBOLS),
   ...buildPatterns(UPPERCASE_HEX),
   ...buildPatterns(MORE_SYMBOLS),

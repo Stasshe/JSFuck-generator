@@ -22,12 +22,12 @@ function randomInt(min: number, max: number, rng: () => number): number {
 function buildQuizString(
   length: number,
   difficulty: number,
-  allowLiteral: boolean,
+  strict: boolean,
   rng: () => number,
 ): string {
   const candidates = getPatterns()
     .filter((p) => p.output.length === 1)
-    .filter((p) => (allowLiteral ? true : p.kind !== "literal"))
+    .filter((p) => (strict ? p.pure : true))
     .filter((p) => patternTier(p) <= difficulty);
 
   if (candidates.length === 0) return "a";
@@ -42,24 +42,28 @@ function buildQuizString(
 
 export function generateQuiz(config: QuizConfig): QuizResult {
   const rng = config.rng ?? Math.random;
+  const strict = config.strict ?? false;
   const [minLen, maxLen] = lengthRange(config.difficulty);
   const targetLen = config.length ?? randomInt(minLen, maxLen, rng);
 
   const genConfig: GeneratorConfig = {
     difficulty: config.difficulty,
-    allowLiteral: config.allowLiteral,
+    strict,
     rng,
   };
 
   for (let attempt = 0; attempt < MAX_QUIZ_ATTEMPTS; attempt++) {
-    const quizStr = buildQuizString(targetLen, config.difficulty, config.allowLiteral, rng);
+    const quizStr = buildQuizString(targetLen, config.difficulty, strict, rng);
     const result = generate(quizStr, genConfig);
 
     if (!result.ok) continue;
 
     const belowTarget =
-      config.difficulty <= MAX_TIER && result.actualDifficulty < config.difficulty - DIFFICULTY_TOLERANCE;
-    const aboveTarget = config.difficulty < MAX_DIFFICULTY && result.actualDifficulty > config.difficulty + DIFFICULTY_TOLERANCE;
+      config.difficulty <= MAX_TIER &&
+      result.actualDifficulty < config.difficulty - DIFFICULTY_TOLERANCE;
+    const aboveTarget =
+      config.difficulty < MAX_DIFFICULTY &&
+      result.actualDifficulty > config.difficulty + DIFFICULTY_TOLERANCE;
     if (belowTarget || aboveTarget) continue;
 
     return {

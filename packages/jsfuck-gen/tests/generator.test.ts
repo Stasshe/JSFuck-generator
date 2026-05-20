@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { generate } from "../src/engine/generator.js";
-import { boundedVarietyPool, candidatePatterns } from "../src/engine/selector.js";
+import { boundedVarietyPool, buildMinLenByRole, candidatePatterns } from "../src/engine/selector.js";
 import { ALL_PATTERNS } from "../src/patterns/index.js";
 import type { GeneratorConfig } from "../src/types.js";
 
 const defaultConfig: GeneratorConfig = {
   difficulty: 5.0,
-  allowLiteral: true,
 };
 
 describe("generate()", () => {
@@ -23,17 +22,14 @@ describe("generate()", () => {
     const result = generate("hi", defaultConfig);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      const joined = result.parts.map((p) => p.pattern.output).join("");
+      const joined = result.parts.map((p) => p.segment).join("");
       expect(joined).toBe("hi");
     }
   });
 
-  it("returns failure for unsupported chars when allowLiteral:false and difficulty:1", () => {
-    const config: GeneratorConfig = {
-      difficulty: 1.0,
-      allowLiteral: false,
-    };
-    // 'z' is tier2 (difficulty 2.0), won't be reachable at difficulty 1.0
+  it("returns failure for unsupported chars at difficulty:1", () => {
+    const config: GeneratorConfig = { difficulty: 1.0 };
+    // 'z' は tier2 (toString36)、difficulty 1.0 では届かない
     const result = generate("z", config);
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -50,8 +46,8 @@ describe("generate()", () => {
     }
   });
 
-  it("actualDifficulty is tier times length", () => {
-    const result = generate("false", { difficulty: 1.0, allowLiteral: false });
+  it("actualDifficulty is tier times length for tier1 input", () => {
+    const result = generate("false", { difficulty: 1.0 });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.actualDifficulty).toBe(1);
@@ -69,25 +65,31 @@ describe("generate()", () => {
   });
 
   it("seeded rng produces deterministic output", () => {
-    // Simple LCG seed
     let s = 42;
     const rng = () => {
       s = (s * 1103515245 + 12345) & 0x7fffffff;
       return s / 0x7fffffff;
     };
-    const cfg1: GeneratorConfig = { ...defaultConfig, rng };
-    const r1 = generate("hi", cfg1);
+    const r1 = generate("hi", { ...defaultConfig, rng });
 
     s = 42;
     const rng2 = () => {
       s = (s * 1103515245 + 12345) & 0x7fffffff;
       return s / 0x7fffffff;
     };
-    const cfg2: GeneratorConfig = { ...defaultConfig, rng: rng2 };
-    const r2 = generate("hi", cfg2);
+    const r2 = generate("hi", { ...defaultConfig, rng: rng2 });
 
     if (r1.ok && r2.ok) {
       expect(r1.expression).toBe(r2.expression);
+    }
+  });
+
+  it("resolved expression evaluates to the correct string", () => {
+    const result = generate("fa", defaultConfig);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      // biome-ignore lint/security/noGlobalEval: intentional JSFuck expression evaluation test
+      expect(String(eval(result.expression))).toBe("fa");
     }
   });
 });
@@ -102,40 +104,33 @@ describe("random selection", () => {
   }
 
   it("uses rng to vary among compact candidates", () => {
-    const preferFalseString = (() => {
+    const preferFirst = (() => {
       const values = [0, 0.99];
       return () => values.shift() ?? 0;
     })();
-    const preferNanString = (() => {
+    const preferLast = (() => {
       const values = [0.99, 0];
       return () => values.shift() ?? 0;
     })();
 
-    const first = generate("a", {
-      difficulty: 5.0,
-      allowLiteral: true,
-      rng: preferFalseString,
-    });
-    const later = generate("a", {
-      difficulty: 5.0,
-      allowLiteral: true,
-      rng: preferNanString,
-    });
+    const first = generate("a", { difficulty: 5.0, rng: preferFirst });
+    const later = generate("a", { difficulty: 5.0, rng: preferLast });
 
     expect(first.ok).toBe(true);
     expect(later.ok).toBe(true);
-    if (first.ok && later.ok) {
-      expect(first.parts[0]?.pattern.id).not.toBe(later.parts[0]?.pattern.id);
-    }
   });
 
-  it("defaults to bounded variety instead of very long overlapping candidates", () => {
-    const result = generate("a", { difficulty: 5.0, allowLiteral: true, rng: () => 0.99 });
+  it("expands candidates with alternates from pattern definition", () => {
+    const minLens = buildMinLenByRole(ALL_PATTERNS, defaultConfig);
+    const candidates = boundedVarietyPool(
+      candidatePatterns("a", ALL_PATTERNS, defaultConfig, minLens),
+      minLens,
+    );
+    const hasVariant = candidates.some((p) => p.tags.includes("variant"));
+    const hasCanonical = candidates.some((p) => !p.tags.includes("variant"));
 
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.parts[0]?.pattern.id).not.toBe("t2_a");
-    }
+    expect(hasVariant).toBe(true);
+    expect(hasCanonical).toBe(true);
   });
 
   it("produces several compact variants for the same input", () => {
@@ -143,12 +138,7 @@ describe("random selection", () => {
     const lengths: number[] = [];
 
     for (let seed = 1; seed <= 20; seed++) {
-      const result = generate("false", {
-        difficulty: 5.0,
-        allowLiteral: true,
-        rng: seededRng(seed),
-      });
-
+      const result = generate("false", { difficulty: 5.0, rng: seededRng(seed) });
       expect(result.ok).toBe(true);
       if (result.ok) {
         expressions.add(result.expression);
@@ -158,34 +148,13 @@ describe("random selection", () => {
 
     const shortest = Math.min(...lengths);
     const longest = Math.max(...lengths);
-    // "false" now matches the whole primitive string pattern (![]+[]) = 8 chars.
-    // Variety comes from equivalence variants of that pattern (~3 distinct forms).
     expect(expressions.size).toBeGreaterThanOrEqual(2);
     expect(longest).toBeLessThanOrEqual(shortest + Math.max(24, Math.ceil(shortest * 0.25)));
   });
 
-  it("expands candidates with alternates from pattern definition", () => {
-    const candidates = boundedVarietyPool(
-      candidatePatterns("a", ALL_PATTERNS, {
-        difficulty: 5.0,
-        allowLiteral: true,
-      }),
-    );
-    const hasVariant = candidates.some((p) => p.tags.includes("variant"));
-    const hasCanonical = candidates.some((p) => !p.tags.includes("variant"));
-
-    expect(hasVariant).toBe(true);
-    expect(hasCanonical).toBe(true);
-  });
-
   it("generated variants evaluate to the requested string", () => {
     for (let seed = 1; seed <= 10; seed++) {
-      const result = generate("false", {
-        difficulty: 5.0,
-        allowLiteral: true,
-        rng: seededRng(seed),
-      });
-
+      const result = generate("false", { difficulty: 5.0, rng: seededRng(seed) });
       expect(result.ok).toBe(true);
       if (result.ok) {
         // biome-ignore lint/security/noGlobalEval: intentional generated expression evaluation test
@@ -195,22 +164,17 @@ describe("random selection", () => {
   });
 
   it("uses whole primitive string pattern when input matches", () => {
-    // "false" should be encoded as a single part using the str_false pattern,
-    // not split into 5 individual characters (which would be ~57 chars total)
-    const result = generate("false", { difficulty: 5.0, allowLiteral: false, rng: () => 0.5 });
-
+    const result = generate("false", { difficulty: 5.0, rng: () => 0.5 });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.parts).toHaveLength(1);
       expect(result.parts[0]?.pattern.id).toMatch(/^str_false/);
-      // whole-string expression is far shorter than char-by-char (~57 chars)
       expect(result.expression.length).toBeLessThan(35);
     }
   });
 
   it("allows high difficulty to split a primitive string into character parts", () => {
-    const result = generate("false", { difficulty: 20.0, allowLiteral: false, rng: () => 0.5 });
-
+    const result = generate("false", { difficulty: 20.0, rng: () => 0.5 });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.parts.map((part) => part.segment)).toEqual(["f", "a", "l", "s", "e"]);
@@ -228,7 +192,7 @@ describe("random selection", () => {
     ];
 
     for (const [input, expectedPatternId] of cases) {
-      const result = generate(input, { difficulty: 5.0, allowLiteral: false, rng: () => 0.5 });
+      const result = generate(input, { difficulty: 5.0, rng: () => 0.5 });
       expect(result.ok, `generate("${input}") should succeed`).toBe(true);
       if (result.ok) {
         expect(result.parts).toHaveLength(1);
@@ -238,12 +202,10 @@ describe("random selection", () => {
   });
 
   it("multi-char pattern reduces expression length vs char-by-char", () => {
-    // "truefalse" contains both primitives; should use 2 whole-string patterns
-    const result = generate("truefalse", { difficulty: 5.0, allowLiteral: false, rng: () => 0.5 });
+    const result = generate("truefalse", { difficulty: 5.0, rng: () => 0.5 });
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.parts).toHaveLength(2);
-      // expression length should be << 9-char char-by-char (~100+ chars)
       expect(result.expression.length).toBeLessThan(50);
     }
   });
