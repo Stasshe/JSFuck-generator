@@ -208,6 +208,16 @@ describe("random selection", () => {
     }
   });
 
+  it("allows high difficulty to split a primitive string into character parts", () => {
+    const result = generate("false", { difficulty: 20.0, allowLiteral: false, rng: () => 0.5 });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.parts.map((part) => part.segment)).toEqual(["f", "a", "l", "s", "e"]);
+      expect(result.parts.map((part) => part.pattern.id)).not.toContain("str_false");
+    }
+  });
+
   it("uses whole primitive string for each known primitive", () => {
     const cases: [string, string][] = [
       ["false", "str_false"],
