@@ -129,7 +129,7 @@ function makeUnescapePattern(
     id,
     output,
     role: id,
-    expression: `(@{unescape_fn})(@{percent_expr}+${hex1Expr}+${hex2Expr})`,
+    expression: `(@{unescape_fn})(@{percent_expr}+(${hex1Expr})+(${hex2Expr}))`,
     deps: ["unescape_fn", "percent_expr", ...extraDeps],
     pure: true,
     kind: "jsfuck",

@@ -4,7 +4,7 @@ import { patternTier } from "./difficulty.js";
 import type { GeneratorConfig, QuizConfig, QuizResult } from "./types.js";
 
 const MAX_QUIZ_ATTEMPTS = 10;
-const MAX_DIFFICULTY = 20;
+const MAX_DIFFICULTY = 5;
 const DIFFICULTY_TOLERANCE = 1;
 const MAX_TIER = 5;
 
