@@ -3,6 +3,8 @@ import { getPatterns } from "./patterns/index.js";
 import type { GeneratorConfig, QuizConfig, QuizResult } from "./types.js";
 
 const MAX_QUIZ_ATTEMPTS = 10;
+const MAX_DIFFICULTY = 20;
+const DIFFICULTY_TOLERANCE = 1;
 
 function lengthRange(difficulty: number): [number, number] {
   if (difficulty <= 2.0) return [1, 2];
@@ -54,7 +56,11 @@ export function generateQuiz(config: QuizConfig): QuizResult {
 
     if (!result.ok) continue;
 
-    if (result.actualDifficulty > config.difficulty) continue;
+    const belowTarget = result.actualDifficulty < config.difficulty - DIFFICULTY_TOLERANCE;
+    const aboveTarget =
+      config.difficulty < MAX_DIFFICULTY &&
+      result.actualDifficulty > config.difficulty + DIFFICULTY_TOLERANCE;
+    if (belowTarget || aboveTarget) continue;
 
     return {
       ok: true,
@@ -63,7 +69,6 @@ export function generateQuiz(config: QuizConfig): QuizResult {
         answer: quizStr,
         actualDifficulty: result.actualDifficulty,
         parts: result.parts,
-        totalCost: result.totalCost,
       },
     };
   }

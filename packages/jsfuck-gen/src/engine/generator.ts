@@ -11,7 +11,6 @@ export function generate(input: string, config: GeneratorConfig): GenerateResult
       output: "",
       expression: "[]+ []",
       parts: [],
-      totalCost: 0,
       actualDifficulty: 1.0,
     };
   }
@@ -43,7 +42,6 @@ export function generate(input: string, config: GeneratorConfig): GenerateResult
   }
 
   const expression = partsToExpression(parts);
-  const totalCost = parts.reduce((sum, p) => sum + p.pattern.expression.length, 0);
   const actualDifficulty = computeActualDifficulty(parts, ALL_PATTERNS);
 
   return {
@@ -51,7 +49,6 @@ export function generate(input: string, config: GeneratorConfig): GenerateResult
     output: input,
     expression,
     parts,
-    totalCost,
     actualDifficulty,
   };
 }

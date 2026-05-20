@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { patternDifficulty } from "../src/difficulty.js";
 import { ALL_PATTERNS } from "../src/patterns/index.js";
 import type { Pattern } from "../src/types.js";
 
@@ -33,9 +34,9 @@ describe("Pattern dictionary integrity", () => {
       for (const req of p.requires) {
         const reqPattern = patternMap.get(req)!;
         expect(
-          reqPattern.difficulty,
-          `${p.id} (diff=${p.difficulty}) requires ${req} (diff=${reqPattern.difficulty}) which has higher difficulty`,
-        ).toBeLessThanOrEqual(p.difficulty);
+          patternDifficulty(reqPattern),
+          `${p.id} (diff=${patternDifficulty(p)}) requires ${req} (diff=${patternDifficulty(reqPattern)}) which has higher difficulty`,
+        ).toBeLessThanOrEqual(patternDifficulty(p));
       }
     }
   });
@@ -60,22 +61,9 @@ describe("Pattern dictionary integrity", () => {
     }
   });
 
-  it("difficulty is in range 0.5~5.0", () => {
+  it("difficulty is positive", () => {
     for (const p of ALL_PATTERNS) {
-      expect(p.difficulty, `${p.id} difficulty out of range`).toBeGreaterThanOrEqual(0.5);
-      expect(p.difficulty, `${p.id} difficulty out of range`).toBeLessThanOrEqual(5.0);
-    }
-  });
-
-  it("weight > 0", () => {
-    for (const p of ALL_PATTERNS) {
-      expect(p.weight, `${p.id} weight must be > 0`).toBeGreaterThan(0);
-    }
-  });
-
-  it("cost > 0", () => {
-    for (const p of ALL_PATTERNS) {
-      expect(p.cost, `${p.id} cost must be > 0`).toBeGreaterThan(0);
+      expect(patternDifficulty(p), `${p.id} difficulty must be > 0`).toBeGreaterThan(0);
     }
   });
 

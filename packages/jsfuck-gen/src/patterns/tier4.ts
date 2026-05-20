@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { CONSTR_KEY, FUNC_CTOR, numExpr, unescapeCharExpr } from "./builder.js";
+import { CONSTR_KEY, FUNC_CTOR, unescapeCharExpr } from "./builder.js";
 
 // Tier 4: difficulty 3.5~5.0
 // escape/unescape based character access for remaining ASCII chars

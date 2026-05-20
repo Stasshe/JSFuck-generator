@@ -13,11 +13,10 @@ function makeParts(ids: string[]): GeneratedPart[] {
 }
 
 describe("computeActualDifficulty", () => {
-  it("returns value in 1~5 range", () => {
+  it("sums tier times segment length", () => {
     const parts = makeParts(["char_f", "char_a", "char_l"]);
     const d = computeActualDifficulty(parts, ALL_PATTERNS);
-    expect(d).toBeGreaterThanOrEqual(1.0);
-    expect(d).toBeLessThanOrEqual(5.0);
+    expect(d).toBe(3);
   });
 
   it("returns approximately 1.0 for empty parts", () => {
@@ -25,16 +24,11 @@ describe("computeActualDifficulty", () => {
     expect(d).toBeCloseTo(1.0, 5);
   });
 
-  it("higher pattern difficulty produces higher actualDifficulty (all else equal)", () => {
-    // Use patterns with no trapFor to isolate avgPatternDifficulty effect
-    // char_d (tier1, diff=1.0) vs t2_bootstrap_g (tier2-like, diff=1.8)
-    // Both have no trapFor entries targeting them
-    const lowerParts = makeParts(["char_d"]); // diff 1.0, no trap hits
-    const higherParts = makeParts(["t2_bootstrap_g"]); // diff 1.8, no trap hits
+  it("higher tier produces higher actualDifficulty for same length", () => {
+    const lowerParts = makeParts(["char_d"]);
+    const higherParts = makeParts(["t2_bootstrap_g"]);
     const d1 = computeActualDifficulty(lowerParts, ALL_PATTERNS);
     const d2 = computeActualDifficulty(higherParts, ALL_PATTERNS);
-    // avgPatternDifficulty contribution: 0.4*(1.8-1.0)=0.32 higher for tier2
-    // structural depth also higher for t2_bootstrap_g
     expect(d2).toBeGreaterThan(d1);
   });
 });

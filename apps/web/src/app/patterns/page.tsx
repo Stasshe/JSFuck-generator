@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { PatternKind } from "jsfuck-gen";
+import { patternDifficulty, patternTier, type PatternKind } from "jsfuck-gen";
 import { allPatterns, dependencyDepth, hasTrapWarning, uniqueTags } from "@/lib/pattern-utils";
 
 export default function PatternsPage() {
@@ -17,8 +17,9 @@ export default function PatternsPage() {
     const max = Number(maxDifficulty);
     return allPatterns.filter((pattern) => {
       if (output && pattern.output !== output) return false;
-      if (Number.isFinite(min) && pattern.difficulty < min) return false;
-      if (Number.isFinite(max) && pattern.difficulty > max) return false;
+      const difficulty = patternDifficulty(pattern);
+      if (Number.isFinite(min) && difficulty < min) return false;
+      if (Number.isFinite(max) && difficulty > max) return false;
       if (tag && !pattern.tags.includes(tag)) return false;
       if (kind !== "all" && pattern.kind !== kind) return false;
       return true;
@@ -98,8 +99,8 @@ export default function PatternsPage() {
               <th className="px-3 py-3">output</th>
               <th className="px-3 py-3">expression</th>
               <th className="px-3 py-3">kind</th>
+              <th className="px-3 py-3">tier</th>
               <th className="px-3 py-3">difficulty</th>
-              <th className="px-3 py-3">cost</th>
               <th className="px-3 py-3">tags</th>
               <th className="px-3 py-3">trapFor</th>
               <th className="px-3 py-3">requires</th>
@@ -109,6 +110,7 @@ export default function PatternsPage() {
           <tbody>
             {filtered.map((pattern) => {
               const warning = hasTrapWarning(pattern);
+              const difficulty = patternDifficulty(pattern);
               return (
                 <tr
                   key={pattern.id}
@@ -123,10 +125,10 @@ export default function PatternsPage() {
                   </td>
                   <td className="px-3 py-3 align-top">{pattern.kind}</td>
                   <td className="px-3 py-3 align-top">
-                    {pattern.difficulty.toFixed(1)}
+                    {patternTier(pattern)}
                     <span className="ml-2 text-xs text-(--muted)">depth {dependencyDepth(pattern)}</span>
                   </td>
-                  <td className="px-3 py-3 align-top">{pattern.cost}</td>
+                  <td className="px-3 py-3 align-top">{difficulty}</td>
                   <td className="px-3 py-3 align-top">{pattern.tags.join(", ") || "-"}</td>
                   <td className="px-3 py-3 align-top">{pattern.trapFor.join(", ") || "-"}</td>
                   <td className="px-3 py-3 align-top">{pattern.requires.join(", ") || "-"}</td>

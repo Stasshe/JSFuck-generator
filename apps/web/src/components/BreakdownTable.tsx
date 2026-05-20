@@ -1,4 +1,5 @@
 import type { GeneratedPart } from "jsfuck-gen";
+import { partDifficulty } from "jsfuck-gen";
 import { dependencyDepth, hasTrapWarning, partKey } from "@/lib/pattern-utils";
 
 type Props = {
@@ -47,7 +48,7 @@ export function BreakdownTable({ parts }: Props) {
                   </code>
                 </td>
                 <td className="whitespace-nowrap px-3 py-3 align-top">
-                  {part.pattern.difficulty.toFixed(1)}
+                  {partDifficulty(part)}
                 </td>
                 <td className="px-3 py-3 align-top">
                   <div className="flex flex-wrap gap-1">

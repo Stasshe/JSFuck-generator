@@ -36,7 +36,6 @@ export type GenerateSuccess = {
   output: string;
   expression: string;
   parts: GeneratedPart[];
-  totalCost: number;
   actualDifficulty: Difficulty;
 };
 
@@ -53,7 +52,6 @@ export type QuizQuestion = {
   answer: string;
   actualDifficulty: Difficulty;
   parts: GeneratedPart[];
-  totalCost: number;
 };
 
 export type QuizResult = { ok: true; question: QuizQuestion } | { ok: false; reason: string };

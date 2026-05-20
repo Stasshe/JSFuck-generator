@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { generateQuiz, type QuizQuestion, type SelectStrategy } from "jsfuck-gen";
+import { generateQuiz, type QuizQuestion } from "jsfuck-gen";
 import { BreakdownTable } from "@/components/BreakdownTable";
 import { Controls } from "@/components/Controls";
 import { ResultStats } from "@/components/ResultStats";
 
 type Settings = {
   difficulty: number;
-  strategy: SelectStrategy;
   allowLiteral: boolean;
 };
 
@@ -16,7 +15,6 @@ type AnswerState = "idle" | "correct" | "incorrect";
 
 const initialSettings: Settings = {
   difficulty: 2,
-  strategy: "random",
   allowLiteral: false,
 };
 
@@ -138,7 +136,6 @@ export default function QuizPage() {
             <>
               <ResultStats
                 output={question.answer}
-                totalCost={question.totalCost}
                 actualDifficulty={question.actualDifficulty}
               />
               <BreakdownTable parts={question.parts} />

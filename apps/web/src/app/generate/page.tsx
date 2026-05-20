@@ -1,20 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { generate, type GenerateResult, type SelectStrategy } from "jsfuck-gen";
+import { generate, type GenerateResult } from "jsfuck-gen";
 import { BreakdownTable } from "@/components/BreakdownTable";
 import { Controls } from "@/components/Controls";
 import { ResultStats } from "@/components/ResultStats";
 
 type Settings = {
   difficulty: number;
-  strategy: SelectStrategy;
   allowLiteral: boolean;
 };
 
 const initialSettings: Settings = {
   difficulty: 3,
-  strategy: "shortest",
   allowLiteral: true,
 };
 
@@ -98,7 +96,6 @@ export default function GeneratePage() {
             </div>
             <ResultStats
               output={result.output}
-              totalCost={result.totalCost}
               actualDifficulty={result.actualDifficulty}
             />
             <BreakdownTable parts={result.parts} />

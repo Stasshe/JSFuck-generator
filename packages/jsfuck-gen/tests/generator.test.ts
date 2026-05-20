@@ -4,7 +4,6 @@ import type { GeneratorConfig } from "../src/types.js";
 
 const defaultConfig: GeneratorConfig = {
   difficulty: 5.0,
-  strategy: "shortest",
   allowLiteral: true,
 };
 
@@ -15,7 +14,6 @@ describe("generate()", () => {
     if (result.ok) {
       expect(result.output).toBe("hello");
       expect(result.parts.length).toBeGreaterThan(0);
-      expect(result.totalCost).toBeGreaterThan(0);
     }
   });
 
@@ -31,7 +29,6 @@ describe("generate()", () => {
   it("returns failure for unsupported chars when allowLiteral:false and difficulty:1", () => {
     const config: GeneratorConfig = {
       difficulty: 1.0,
-      strategy: "random",
       allowLiteral: false,
     };
     // 'z' is tier2 (difficulty 2.0), won't be reachable at difficulty 1.0
@@ -51,12 +48,11 @@ describe("generate()", () => {
     }
   });
 
-  it("actualDifficulty is 1~5", () => {
-    const result = generate("false", defaultConfig);
+  it("actualDifficulty is tier times length", () => {
+    const result = generate("false", { difficulty: 1.0, allowLiteral: false });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.actualDifficulty).toBeGreaterThanOrEqual(1.0);
-      expect(result.actualDifficulty).toBeLessThanOrEqual(5.0);
+      expect(result.actualDifficulty).toBe(5);
     }
   });
 
@@ -70,15 +66,6 @@ describe("generate()", () => {
     }
   });
 
-  it("shortest strategy minimizes totalCost vs random", () => {
-    const shortResult = generate("test", { ...defaultConfig, strategy: "shortest" });
-    const randomResult = generate("test", { ...defaultConfig, strategy: "random", rng: () => 0.5 });
-    // shortest should not be worse than random
-    if (shortResult.ok && randomResult.ok) {
-      expect(shortResult.totalCost).toBeLessThanOrEqual(randomResult.totalCost);
-    }
-  });
-
   it("seeded rng produces deterministic output", () => {
     // Simple LCG seed
     let s = 42;
@@ -86,7 +73,7 @@ describe("generate()", () => {
       s = (s * 1103515245 + 12345) & 0x7fffffff;
       return s / 0x7fffffff;
     };
-    const cfg1: GeneratorConfig = { ...defaultConfig, strategy: "random", rng };
+    const cfg1: GeneratorConfig = { ...defaultConfig, rng };
     const r1 = generate("hi", cfg1);
 
     s = 42;
@@ -94,7 +81,7 @@ describe("generate()", () => {
       s = (s * 1103515245 + 12345) & 0x7fffffff;
       return s / 0x7fffffff;
     };
-    const cfg2: GeneratorConfig = { ...defaultConfig, strategy: "random", rng: rng2 };
+    const cfg2: GeneratorConfig = { ...defaultConfig, rng: rng2 };
     const r2 = generate("hi", cfg2);
 
     if (r1.ok && r2.ok) {
@@ -103,27 +90,15 @@ describe("generate()", () => {
   });
 });
 
-describe("weightedRandom distribution", () => {
-  it("higher weight patterns selected more often", () => {
-    // digit_0 has weight 3, char_space has weight 1
-    // Run many times and check distribution
-    const counts: Record<string, number> = {};
-    const N = 200;
+describe("random selection", () => {
+  it("uses rng to choose among candidates", () => {
+    const first = generate("a", { difficulty: 5.0, allowLiteral: true, rng: () => 0 });
+    const later = generate("a", { difficulty: 5.0, allowLiteral: true, rng: () => 0.99 });
 
-    for (let i = 0; i < N; i++) {
-      const result = generate("0", {
-        difficulty: 5.0,
-        strategy: "random",
-        allowLiteral: false,
-      });
-      if (result.ok && result.parts.length > 0) {
-        const id = result.parts[0]!.pattern.id;
-        counts[id] = (counts[id] ?? 0) + 1;
-      }
+    expect(first.ok).toBe(true);
+    expect(later.ok).toBe(true);
+    if (first.ok && later.ok) {
+      expect(first.parts[0]?.pattern.id).not.toBe(later.parts[0]?.pattern.id);
     }
-
-    // digit_0 (weight 3) should appear more than char alternatives (weight 1)
-    const digit0Count = counts["digit_0"] ?? 0;
-    expect(digit0Count).toBeGreaterThan(N * 0.4);
   });
 });

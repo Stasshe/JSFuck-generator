@@ -6,31 +6,41 @@ describe("generateQuiz()", () => {
   it("returns ok:true for difficulty 1.0", () => {
     const config: QuizConfig = {
       difficulty: 1.0,
-      strategy: "shortest",
       allowLiteral: false,
     };
     const result = generateQuiz(config);
     expect(result.ok).toBe(true);
   });
 
-  it("actualDifficulty within ±0.5 of target", () => {
-    const target = 1.5;
+  it("actualDifficulty is within tolerance of target", () => {
+    const target = 2;
     const config: QuizConfig = {
       difficulty: target,
-      strategy: "shortest",
       allowLiteral: true,
     };
     const result = generateQuiz(config);
     if (result.ok) {
-      expect(result.question.actualDifficulty).toBeGreaterThanOrEqual(target - 0.5);
-      expect(result.question.actualDifficulty).toBeLessThanOrEqual(target + 0.5);
+      expect(Math.abs(result.question.actualDifficulty - target)).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("allows unlimited upward error at max difficulty", () => {
+    const result = generateQuiz({
+      difficulty: 20,
+      allowLiteral: true,
+      length: 6,
+      rng: () => 0.99,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.question.actualDifficulty).toBeGreaterThan(21);
     }
   });
 
   it("expression evaluates to answer", () => {
     const config: QuizConfig = {
       difficulty: 1.5,
-      strategy: "shortest",
       allowLiteral: true,
     };
     const result = generateQuiz(config);
@@ -44,7 +54,6 @@ describe("generateQuiz()", () => {
   it("respects config.length when provided", () => {
     const config: QuizConfig = {
       difficulty: 2.0,
-      strategy: "shortest",
       allowLiteral: true,
       length: 3,
     };
@@ -62,7 +71,6 @@ describe("generateQuiz()", () => {
     };
     const config: QuizConfig = {
       difficulty: 1.5,
-      strategy: "random",
       allowLiteral: true,
       rng,
     };
