@@ -3,6 +3,7 @@ import {
   DIFFICULTY_ATTEMPTS,
   difficultyError,
   isDifficultyWithinTolerance,
+  patternDifficulty,
 } from "./difficulty.js";
 import { getPatterns } from "./patterns/index.js";
 import type { GeneratorConfig, QuizQuestion, QuizConfig, QuizResult } from "./types.js";
@@ -27,7 +28,14 @@ function buildQuizString(
   const filter = {
     ...(allowLiteral ? {} : { kind: "jsfuck" as const }),
   };
-  const candidates = getPatterns(filter).filter((p) => p.output.length === 1 && p.kind !== "literal");
+  const rawCandidates = getPatterns(filter).filter((p) => p.output.length === 1 && p.kind !== "literal");
+  const targetPartDifficulty = difficulty / length;
+  const minError = Math.min(
+    ...rawCandidates.map((p) => difficultyError(patternDifficulty(p), targetPartDifficulty)),
+  );
+  const candidates = rawCandidates.filter(
+    (p) => difficultyError(patternDifficulty(p), targetPartDifficulty) <= minError + 1,
+  );
 
   if (candidates.length === 0) return "a";
 

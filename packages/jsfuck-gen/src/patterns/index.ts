@@ -21,15 +21,12 @@ function makeLiteral(ch: string): Pattern {
   };
 }
 
-// Collect all outputs already covered by jsfuck patterns
-const covered = new Set(ALL_PATTERNS.map((p) => p.output));
-
-// Add literal fallbacks for printable ASCII (0x20-0x7E)
+// Add literal alternatives for printable ASCII (0x20-0x7E). They are gated by
+// allowLiteral at generation time, so covered JSFuck chars can still use them
+// when a high target difficulty asks for a higher-tier path.
 for (let code = 0x20; code <= 0x7e; code++) {
   const ch = String.fromCharCode(code);
-  if (!covered.has(ch)) {
-    ALL_PATTERNS.push(makeLiteral(ch));
-  }
+  ALL_PATTERNS.push(makeLiteral(ch));
 }
 
 export function getPatterns(filter?: PatternFilter): Pattern[] {

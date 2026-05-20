@@ -56,6 +56,23 @@ describe("generate()", () => {
     }
   });
 
+  it("chooses higher-tier paths when target difficulty is max", () => {
+    for (const input of ["a", "f"]) {
+      const result = generate(input, {
+        difficulty: 20,
+        allowLiteral: true,
+        rng: () => 0,
+      });
+
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(result.actualDifficulty).toBe(5);
+        // biome-ignore lint/security/noGlobalEval: intentional generated expression evaluation test
+        expect(String(eval(result.expression))).toBe(input);
+      }
+    }
+  });
+
   it("generates empty string", () => {
     const result = generate("", defaultConfig);
     expect(result.ok).toBe(true);
