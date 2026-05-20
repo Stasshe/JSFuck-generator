@@ -59,7 +59,7 @@ export default function QuizPage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-semibold">Quiz Mode</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">式を読んで、評価される文字列を回答します。</p>
+        <p className="mt-1 text-sm text-(--muted)">式を読んで、評価される文字列を回答します。</p>
       </div>
 
       <section className="space-y-4">
@@ -73,7 +73,7 @@ export default function QuizPage() {
               placeholder="auto"
               value={length}
               onChange={(event) => setLength(event.target.value)}
-              className="h-10 rounded-md border border-[var(--line)] bg-white px-3"
+              className="h-10 rounded-md border border-(--line) bg-white px-3"
             />
           </label>
         </Controls>
@@ -81,7 +81,7 @@ export default function QuizPage() {
           <button
             type="button"
             onClick={handleGenerate}
-            className="h-10 rounded-md bg-[var(--accent)] px-4 font-semibold text-white"
+            className="h-10 rounded-md bg-(--accent) px-4 font-semibold text-white"
           >
             Generate
           </button>
@@ -89,33 +89,33 @@ export default function QuizPage() {
       </section>
 
       {error ? (
-        <section className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-[var(--danger)]">
+        <section className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-(--danger)">
           {error}
         </section>
       ) : null}
 
       {question ? (
         <section className="space-y-4">
-          <div className="rounded-lg border border-[var(--line)] bg-white">
-            <div className="border-b border-[var(--line)] px-4 py-3 font-semibold">Question</div>
+          <div className="rounded-lg border border-(--line) bg-white">
+            <div className="border-b border-(--line) px-4 py-3 font-semibold">Question</div>
             <pre className="max-h-80 overflow-auto p-4 text-xs leading-5">
               <code>{question.expression}</code>
             </pre>
           </div>
 
-          <div className="grid gap-3 rounded-lg border border-[var(--line)] bg-white p-4 sm:grid-cols-[1fr_auto]">
+          <div className="grid gap-3 rounded-lg border border-(--line) bg-white p-4 sm:grid-cols-[1fr_auto]">
             <label className="grid gap-2">
               <span className="text-sm font-medium">answer</span>
               <input
                 value={answer}
                 onChange={(event) => setAnswer(event.target.value)}
-                className="h-10 rounded-md border border-[var(--line)] px-3 font-mono outline-none focus:border-[var(--accent)]"
+                className="h-10 rounded-md border border-(--line) px-3 font-mono outline-none focus:border-(--accent)"
               />
             </label>
             <button
               type="button"
               onClick={handleSubmit}
-              className="self-end rounded-md bg-[var(--accent)] px-4 py-2 font-semibold text-white"
+              className="self-end rounded-md bg-(--accent) px-4 py-2 font-semibold text-white"
             >
               Submit
             </button>
@@ -126,7 +126,7 @@ export default function QuizPage() {
               className={
                 answerState === "correct"
                   ? "rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800"
-                  : "rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-[var(--danger)]"
+                  : "rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-(--danger)"
               }
             >
               <p className="font-semibold">{answerState === "correct" ? "正解" : "不正解"}</p>

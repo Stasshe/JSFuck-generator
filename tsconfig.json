@@ -25,6 +25,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": [],
+  "files": [],
+  "references": [{ "path": "./packages/jsfuck-gen" }, { "path": "./apps/web" }],
   "exclude": ["node_modules", "dist", "tests"]
 }

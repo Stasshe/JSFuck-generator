@@ -29,16 +29,16 @@ export default function PatternsPage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-semibold">Pattern Viewer</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">{filtered.length} / {allPatterns.length} patterns</p>
+        <p className="mt-1 text-sm text-(--muted)">{filtered.length} / {allPatterns.length} patterns</p>
       </div>
 
-      <section className="grid gap-3 rounded-lg border border-[var(--line)] bg-white p-4 md:grid-cols-5">
+      <section className="grid gap-3 rounded-lg border border-(--line) bg-white p-4 md:grid-cols-5">
         <label className="grid gap-2">
           <span className="text-sm font-medium">output</span>
           <input
             value={output}
             onChange={(event) => setOutput(event.target.value.slice(0, 1))}
-            className="h-10 rounded-md border border-[var(--line)] px-3 font-mono"
+            className="h-10 rounded-md border border-(--line) px-3 font-mono"
           />
         </label>
         <label className="grid gap-2">
@@ -48,7 +48,7 @@ export default function PatternsPage() {
             step="0.1"
             value={minDifficulty}
             onChange={(event) => setMinDifficulty(event.target.value)}
-            className="h-10 rounded-md border border-[var(--line)] px-3"
+            className="h-10 rounded-md border border-(--line) px-3"
           />
         </label>
         <label className="grid gap-2">
@@ -58,7 +58,7 @@ export default function PatternsPage() {
             step="0.1"
             value={maxDifficulty}
             onChange={(event) => setMaxDifficulty(event.target.value)}
-            className="h-10 rounded-md border border-[var(--line)] px-3"
+            className="h-10 rounded-md border border-(--line) px-3"
           />
         </label>
         <label className="grid gap-2">
@@ -66,7 +66,7 @@ export default function PatternsPage() {
           <select
             value={tag}
             onChange={(event) => setTag(event.target.value)}
-            className="h-10 rounded-md border border-[var(--line)] bg-white px-3"
+            className="h-10 rounded-md border border-(--line) bg-white px-3"
           >
             <option value="">all</option>
             {tags.map((item) => (
@@ -81,7 +81,7 @@ export default function PatternsPage() {
           <select
             value={kind}
             onChange={(event) => setKind(event.target.value as PatternKind | "all")}
-            className="h-10 rounded-md border border-[var(--line)] bg-white px-3"
+            className="h-10 rounded-md border border-(--line) bg-white px-3"
           >
             <option value="all">all</option>
             <option value="jsfuck">jsfuck</option>
@@ -90,7 +90,7 @@ export default function PatternsPage() {
         </label>
       </section>
 
-      <div className="overflow-x-auto rounded-lg border border-[var(--line)] bg-white">
+      <div className="overflow-x-auto rounded-lg border border-(--line) bg-white">
         <table className="min-w-full border-collapse text-left text-sm">
           <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
             <tr>
@@ -112,7 +112,7 @@ export default function PatternsPage() {
               return (
                 <tr
                   key={pattern.id}
-                  className={warning ? "border-t border-amber-200 bg-amber-50" : "border-t border-[var(--line)]"}
+                  className={warning ? "border-t border-amber-200 bg-amber-50" : "border-t border-(--line)"}
                 >
                   <td className="whitespace-nowrap px-3 py-3 align-top font-mono text-xs">{pattern.id}</td>
                   <td className="px-3 py-3 align-top font-mono">{JSON.stringify(pattern.output)}</td>
@@ -124,15 +124,15 @@ export default function PatternsPage() {
                   <td className="px-3 py-3 align-top">{pattern.kind}</td>
                   <td className="px-3 py-3 align-top">
                     {pattern.difficulty.toFixed(1)}
-                    <span className="ml-2 text-xs text-[var(--muted)]">depth {dependencyDepth(pattern)}</span>
+                    <span className="ml-2 text-xs text-(--muted)">depth {dependencyDepth(pattern)}</span>
                   </td>
                   <td className="px-3 py-3 align-top">{pattern.cost}</td>
                   <td className="px-3 py-3 align-top">{pattern.tags.join(", ") || "-"}</td>
                   <td className="px-3 py-3 align-top">{pattern.trapFor.join(", ") || "-"}</td>
                   <td className="px-3 py-3 align-top">{pattern.requires.join(", ") || "-"}</td>
-                  <td className="min-w-56 px-3 py-3 align-top text-[var(--muted)]">
+                  <td className="min-w-56 px-3 py-3 align-top text-(--muted)">
                     {pattern.description ?? "-"}
-                    {warning ? <span className="ml-2 font-medium text-[var(--warn)]">混同注意</span> : null}
+                    {warning ? <span className="ml-2 font-medium text-(--warn)">混同注意</span> : null}
                   </td>
                 </tr>
               );

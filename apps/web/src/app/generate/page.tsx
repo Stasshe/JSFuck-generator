@@ -49,7 +49,7 @@ export default function GeneratePage() {
     <div className="space-y-5">
       <div>
         <h1 className="text-2xl font-semibold">Generate Mode</h1>
-        <p className="mt-1 text-sm text-[var(--muted)]">入力文字列を JSFuck 式へ変換します。</p>
+        <p className="mt-1 text-sm text-(--muted)">入力文字列を JSFuck 式へ変換します。</p>
       </div>
 
       <section className="space-y-4">
@@ -59,18 +59,18 @@ export default function GeneratePage() {
             value={input}
             maxLength={100}
             onChange={(event) => setInput(event.target.value)}
-            className="min-h-28 resize-y rounded-lg border border-[var(--line)] bg-white p-3 font-mono text-sm leading-6 outline-none focus:border-[var(--accent)]"
+            className="min-h-28 resize-y rounded-lg border border-(--line) bg-white p-3 font-mono text-sm leading-6 outline-none focus:border-(--accent)"
           />
         </label>
         <div className="flex items-center justify-between gap-3 text-sm">
-          <span className={validation ? "text-[var(--danger)]" : "text-[var(--muted)]"}>
+          <span className={validation ? "text-(--danger)" : "text-(--muted)"}>
             {validation || `${input.length}/100`}
           </span>
           <button
             type="button"
             onClick={handleGenerate}
             disabled={Boolean(validation)}
-            className="h-10 rounded-md bg-[var(--accent)] px-4 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
+            className="h-10 rounded-md bg-(--accent) px-4 font-semibold text-white disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             Generate
           </button>
@@ -81,13 +81,13 @@ export default function GeneratePage() {
       {result ? (
         result.ok ? (
           <section className="space-y-4">
-            <div className="rounded-lg border border-[var(--line)] bg-white">
-              <div className="flex items-center justify-between gap-3 border-b border-[var(--line)] px-4 py-3">
+            <div className="rounded-lg border border-(--line) bg-white">
+              <div className="flex items-center justify-between gap-3 border-b border-(--line) px-4 py-3">
                 <h2 className="font-semibold">Expression</h2>
                 <button
                   type="button"
                   onClick={() => copyExpression(result.expression)}
-                  className="h-9 rounded-md border border-[var(--line)] px-3 text-sm font-medium hover:bg-slate-100"
+                  className="h-9 rounded-md border border-(--line) px-3 text-sm font-medium hover:bg-slate-100"
                 >
                   {copied ? "Copied" : "Copy"}
                 </button>
@@ -104,7 +104,7 @@ export default function GeneratePage() {
             <BreakdownTable parts={result.parts} />
           </section>
         ) : (
-          <section className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-[var(--danger)]">
+          <section className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-(--danger)">
             <p className="font-semibold">Generation failed: {result.reason}</p>
             {result.unsupportedChars ? (
               <p className="mt-2">unsupported: {result.unsupportedChars.map((ch) => JSON.stringify(ch)).join(", ")}</p>

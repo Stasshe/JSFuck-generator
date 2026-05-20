@@ -5,3 +5,4 @@ dist
 out
 
 .gle
+next-env.d.ts

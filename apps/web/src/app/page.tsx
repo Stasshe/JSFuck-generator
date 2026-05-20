@@ -21,20 +21,20 @@ const modes = [
 export default function HomePage() {
   return (
     <div className="space-y-6">
-      <section className="grid gap-4 border-b border-[var(--line)] pb-6 md:grid-cols-[1.1fr_0.9fr] md:items-end">
+      <section className="grid gap-4 border-b border-(--line) pb-6 md:grid-cols-[1.1fr_0.9fr] md:items-end">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wide text-[var(--accent)]">
+          <p className="text-sm font-semibold uppercase tracking-wide text-(--accent)">
             JSFuck practice tool
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-normal sm:text-4xl">
             JSFuck Quiz & Generator
           </h1>
-          <p className="mt-3 max-w-2xl text-base leading-7 text-[var(--muted)]">
+          <p className="mt-3 max-w-2xl text-base leading-7 text-(--muted)">
             難易度、選択戦略、literal fallback の有無を切り替えながら、生成結果と
             パターン辞書を検証できます。
           </p>
         </div>
-        <div className="rounded-lg border border-[var(--line)] bg-white p-4">
+        <div className="rounded-lg border border-(--line) bg-white p-4">
           <code className="block break-all text-sm leading-6 text-slate-800">
             (![]+[])[+[]]+(![]+[])[+!![]]+(!![]+[])[+[]]
           </code>
@@ -46,10 +46,10 @@ export default function HomePage() {
           <Link
             key={mode.href}
             href={mode.href}
-            className="rounded-lg border border-[var(--line)] bg-white p-5 transition hover:border-[var(--accent)] hover:shadow-sm"
+            className="rounded-lg border border-(--line) bg-white p-5 transition hover:border-(--accent) hover:shadow-sm"
           >
             <h2 className="text-lg font-semibold">{mode.title}</h2>
-            <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{mode.body}</p>
+            <p className="mt-2 text-sm leading-6 text-(--muted)">{mode.body}</p>
           </Link>
         ))}
       </section>

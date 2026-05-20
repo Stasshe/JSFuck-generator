@@ -18,9 +18,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ja">
       <body>
-        <header className="border-b border-[var(--line)] bg-white">
+        <header className="border-b border-(--line) bg-white">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-            <Link href="/" className="text-base font-semibold tracking-normal text-[var(--foreground)]">
+            <Link href="/" className="text-base font-semibold tracking-normal text-(--foreground)">
               JSFuck Quiz & Generator
             </Link>
             <nav className="flex items-center gap-1">
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-md px-3 py-2 text-sm font-medium text-[var(--muted)] hover:bg-slate-100 hover:text-[var(--foreground)]"
+                  className="rounded-md px-3 py-2 text-sm font-medium text-(--muted) hover:bg-slate-100 hover:text-(--foreground)"
                 >
                   {item.label}
                 </Link>

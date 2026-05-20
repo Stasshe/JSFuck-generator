@@ -7,11 +7,11 @@ type Props = {
 
 export function BreakdownTable({ parts }: Props) {
   if (parts.length === 0) {
-    return <p className="text-sm text-[var(--muted)]">Breakdown is empty.</p>;
+    return <p className="text-sm text-(--muted)">Breakdown is empty.</p>;
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-[var(--line)] bg-white">
+    <div className="overflow-x-auto rounded-lg border border-(--line) bg-white">
       <table className="min-w-full border-collapse text-left text-sm">
         <thead className="bg-slate-100 text-xs uppercase tracking-wide text-slate-600">
           <tr>
@@ -29,14 +29,14 @@ export function BreakdownTable({ parts }: Props) {
             return (
               <tr
                 key={partKey(part, index)}
-                className={warning ? "border-t border-amber-200 bg-amber-50" : "border-t border-[var(--line)]"}
+                className={warning ? "border-t border-amber-200 bg-amber-50" : "border-t border-(--line)"}
               >
                 <td className="whitespace-nowrap px-3 py-3 align-top">
                   <span style={{ paddingLeft: `${depth * 12}px` }} className="font-mono font-semibold">
                     {JSON.stringify(part.segment)}
                   </span>
                   {warning ? (
-                    <span className="ml-2 rounded bg-amber-100 px-2 py-1 text-xs font-medium text-[var(--warn)]">
+                    <span className="ml-2 rounded bg-amber-100 px-2 py-1 text-xs font-medium text-(--warn)">
                       混同注意
                     </span>
                   ) : null}
@@ -58,7 +58,7 @@ export function BreakdownTable({ parts }: Props) {
                     ))}
                   </div>
                 </td>
-                <td className="min-w-48 px-3 py-3 align-top text-[var(--muted)]">
+                <td className="min-w-48 px-3 py-3 align-top text-(--muted)">
                   {part.pattern.description ?? "-"}
                 </td>
               </tr>

@@ -16,7 +16,7 @@ type Props = {
 
 export function Controls({ settings, onChange, children }: Props) {
   return (
-    <div className="grid gap-4 rounded-lg border border-[var(--line)] bg-white p-4 md:grid-cols-3">
+    <div className="grid gap-4 rounded-lg border border-(--line) bg-white p-4 md:grid-cols-3">
       <label className="grid gap-2">
         <span className="text-sm font-medium">difficulty {settings.difficulty.toFixed(1)}</span>
         <input
@@ -26,7 +26,7 @@ export function Controls({ settings, onChange, children }: Props) {
           step="0.1"
           value={settings.difficulty}
           onChange={(event) => onChange({ ...settings, difficulty: Number(event.target.value) })}
-          className="accent-[var(--accent)]"
+          className="accent-(--accent)"
         />
       </label>
 
@@ -37,7 +37,7 @@ export function Controls({ settings, onChange, children }: Props) {
           onChange={(event) =>
             onChange({ ...settings, strategy: event.target.value as SelectStrategy })
           }
-          className="h-10 rounded-md border border-[var(--line)] bg-white px-3"
+          className="h-10 rounded-md border border-(--line) bg-white px-3"
         >
           <option value="random">random</option>
           <option value="shortest">shortest</option>
@@ -45,12 +45,12 @@ export function Controls({ settings, onChange, children }: Props) {
         </select>
       </label>
 
-      <label className="flex min-h-16 items-center gap-3 rounded-md border border-[var(--line)] px-3">
+      <label className="flex min-h-16 items-center gap-3 rounded-md border border-(--line) px-3">
         <input
           type="checkbox"
           checked={settings.allowLiteral}
           onChange={(event) => onChange({ ...settings, allowLiteral: event.target.checked })}
-          className="h-5 w-5 accent-[var(--accent)]"
+          className="h-5 w-5 accent-(--accent)"
         />
         <span className="text-sm font-medium">allow literal fallback</span>
       </label>
