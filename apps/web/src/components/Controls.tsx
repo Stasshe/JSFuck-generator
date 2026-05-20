@@ -19,7 +19,7 @@ export function Controls({ settings, onChange, children }: Props) {
         <input
           type="range"
           min="1"
-          max="20"
+          max="4"
           step="1"
           value={settings.difficulty}
           onChange={(event) => onChange({ ...settings, difficulty: Number(event.target.value) })}
