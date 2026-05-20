@@ -164,18 +164,18 @@ describe("random selection", () => {
     expect(longest).toBeLessThanOrEqual(shortest + Math.max(24, Math.ceil(shortest * 0.25)));
   });
 
-  it("expands candidates with named equivalence rules", () => {
+  it("expands candidates with alternates from pattern definition", () => {
     const candidates = boundedVarietyPool(
       candidatePatterns("a", ALL_PATTERNS, {
         difficulty: 5.0,
         allowLiteral: true,
       }),
     );
-    const ruleTags = new Set(candidates.flatMap((p) => p.tags.filter((tag) => tag.startsWith("eq:"))));
+    const hasVariant = candidates.some((p) => p.tags.includes("variant"));
+    const hasCanonical = candidates.some((p) => !p.tags.includes("variant"));
 
-    expect(ruleTags.has("eq:primitive-source")).toBe(true);
-    expect(ruleTags.has("eq:numeric-index")).toBe(true);
-    expect(ruleTags.has("eq:paren")).toBe(true);
+    expect(hasVariant).toBe(true);
+    expect(hasCanonical).toBe(true);
   });
 
   it("generated variants evaluate to the requested string", () => {

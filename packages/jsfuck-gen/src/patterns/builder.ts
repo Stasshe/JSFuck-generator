@@ -1,6 +1,50 @@
 // JSFuck expression building utilities
 // All expressions evaluate to their described values in Node.js/browser JS
 
+const PRIMITIVE_SOURCE_ALTERNATES: Record<string, string[]> = {
+  "(![]+[])": ["(!+!![]+[])"],
+  "(!![]+[])": ["(!+[]+[])"],
+  "([][+[]]+[])": ["([][[]]+[])"],
+  "(+{}+[])": ["(+[{}]+[])", "([][[]]+(+[])+[])"],
+  "(1/0+[])": ["(+!![]/+[]+[])", "(!+[]/+[]+[])"],
+  "([]+{})": ["({}+[])"],
+};
+
+function numericIndexAlternates(n: number): string[] {
+  if (n > 9) return [];
+  if (n === 0) return ["+[]", "+![]", "[]-[]"];
+  if (n === 1) return ["+!![]", "+!+[]"];
+  const trues = Array(n).fill("!![]").join("+");
+  const notPlus = Array(n).fill("!+[]").join("+");
+  return [trues, notPlus, `+(${trues})`];
+}
+
+export function generateAlternates(expr: string): string[] {
+  const results = new Set<string>();
+
+  for (const match of expr.matchAll(/\[(\d)\]/g)) {
+    const n = Number(match[1]);
+    const alts = numericIndexAlternates(n);
+    const start = match.index!;
+    const end = start + match[0].length;
+    for (const alt of alts) {
+      results.add(`${expr.slice(0, start)}[${alt}]${expr.slice(end)}`);
+    }
+  }
+
+  for (const [atom, alts] of Object.entries(PRIMITIVE_SOURCE_ALTERNATES)) {
+    let pos = expr.indexOf(atom);
+    while (pos !== -1) {
+      for (const alt of alts) {
+        results.add(`${expr.slice(0, pos)}${alt}${expr.slice(pos + atom.length)}`);
+      }
+      pos = expr.indexOf(atom, pos + atom.length);
+    }
+  }
+
+  return [...results];
+}
+
 // Primitive coerced string forms
 export const FALSE_STR = "(![]+[])"; // "false"
 export const TRUE_STR = "(!![]+[])"; // "true"

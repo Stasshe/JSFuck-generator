@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { _g, _S_upper, FILL_FN_STR, letterExpr, STR_CTOR_FN_STR } from "./builder.js";
+import { _g, _S_upper, FILL_FN_STR, generateAlternates, letterExpr, STR_CTOR_FN_STR } from "./builder.js";
 
 // Tier 2: difficulty 1.5~2.5
 // Lowercase letters not already covered by compact tier1 paths, via (n).toString(36)
@@ -37,6 +37,7 @@ function makeLetter(ch: string, n: number): Pattern {
     id: `t2_${ch}`,
     output: ch,
     expression: expr,
+    alternates: generateAlternates(expr),
     kind: "jsfuck",
     tags: ["tier2", "tostring36"],
     trapFor: [],
@@ -51,6 +52,7 @@ const G_PATTERN: Pattern = {
   id: "t2_bootstrap_g",
   output: "g",
   expression: G_EXPR,
+  alternates: generateAlternates(G_EXPR),
   kind: "jsfuck",
   tags: ["tier2", "bootstrap"],
   trapFor: [],
@@ -75,6 +77,7 @@ const S_UPPER_PATTERN: Pattern = {
   id: "t2_S_upper",
   output: "S",
   expression: S_UPPER_EXPR,
+  alternates: generateAlternates(S_UPPER_EXPR),
   kind: "jsfuck",
   tags: ["tier2", "bootstrap", "uppercase"],
   trapFor: ["char_s"],
@@ -99,6 +102,7 @@ const V_PATTERN: Pattern = {
   id: "t2_v_fill",
   output: "v",
   expression: V_EXPR,
+  alternates: generateAlternates(V_EXPR),
   kind: "jsfuck",
   tags: ["tier2", "from_fill_fn"],
   trapFor: [],

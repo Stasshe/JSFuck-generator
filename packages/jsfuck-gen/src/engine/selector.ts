@@ -1,6 +1,5 @@
 import { patternTier } from "../difficulty.js";
 import type { GeneratorConfig, Pattern } from "../types.js";
-import { expandEquivalentPatterns } from "./equivalence.js";
 
 export function candidatePatterns(
   segment: string,
@@ -10,11 +9,20 @@ export function candidatePatterns(
   const baseCandidates = patterns.filter((p) => {
     if (p.output !== segment) return false;
     if (!config.allowLiteral && p.kind === "literal") return false;
-    // config.difficulty is per-character target; compare against pattern tier
     return patternTier(p) <= config.difficulty;
   });
 
-  return baseCandidates.flatMap((p) => [p, ...expandEquivalentPatterns(p)]);
+  return baseCandidates.flatMap((p) => [p, ...expandAlternates(p)]);
+}
+
+function expandAlternates(p: Pattern): Pattern[] {
+  return p.alternates.map((expr, i) => ({
+    ...p,
+    id: `${p.id}:alt_${i}`,
+    expression: expr,
+    alternates: [],
+    tags: [...p.tags, "variant"],
+  }));
 }
 
 export function selectPattern(

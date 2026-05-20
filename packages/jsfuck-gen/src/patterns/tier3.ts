@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { CONSTR_KEY, FILL_FN_STR, FILL_KEY, FUNC_CTOR } from "./builder.js";
+import { CONSTR_KEY, FILL_FN_STR, FILL_KEY, FUNC_CTOR, generateAlternates } from "./builder.js";
 
 // Tier 3: difficulty 2.5~3.5
 // Uppercase letters via constructor function strings
@@ -52,8 +52,12 @@ const PERIOD_EXPR = `(+!![]/(!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![]+!![])+
 
 // Backtick not easily available in tier3
 
+function t3(p: Omit<Pattern, "alternates">): Pattern {
+  return { ...p, alternates: generateAlternates(p.expression) };
+}
+
 const TIER3: Pattern[] = [
-  {
+  t3({
     id: "t3_A_upper",
     output: "A",
     expression: A_UPPER_EXPR,
@@ -62,8 +66,8 @@ const TIER3: Pattern[] = [
     trapFor: ["char_a"],
     requires: [...T3_REQUIRES],
     description: '"function Array(){...}"[9] — uppercase A',
-  },
-  {
+  }),
+  t3({
     id: "t3_B_upper",
     output: "B",
     expression: B_UPPER_EXPR,
@@ -72,8 +76,8 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: [...T3_REQUIRES],
     description: '"function Boolean(){...}"[9] — uppercase B',
-  },
-  {
+  }),
+  t3({
     id: "t3_F_upper",
     output: "F",
     expression: F_UPPER_EXPR,
@@ -82,8 +86,8 @@ const TIER3: Pattern[] = [
     trapFor: ["char_f"],
     requires: [...T3_REQUIRES],
     description: '"function Function(){...}"[9] — uppercase F',
-  },
-  {
+  }),
+  t3({
     id: "t3_open_paren",
     output: "(",
     expression: OPEN_PAREN_EXPR,
@@ -92,8 +96,8 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: ["char_f", "char_i", "char_l"],
     description: '"function fill(){...}"[13] — open paren',
-  },
-  {
+  }),
+  t3({
     id: "t3_close_paren",
     output: ")",
     expression: CLOSE_PAREN_EXPR,
@@ -102,8 +106,8 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: ["char_f", "char_i", "char_l"],
     description: '"function fill(){...}"[14] — close paren',
-  },
-  {
+  }),
+  t3({
     id: "t3_open_brace",
     output: "{",
     expression: OPEN_BRACE_EXPR,
@@ -112,8 +116,8 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: ["char_f", "char_i", "char_l"],
     description: '"function fill(){...}"[16] — open brace',
-  },
-  {
+  }),
+  t3({
     id: "t3_close_brace",
     output: "}",
     expression: CLOSE_BRACE_EXPR,
@@ -122,8 +126,8 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: ["char_f", "char_i", "char_l"],
     description: '"function fill(){...}"[32] — close brace',
-  },
-  {
+  }),
+  t3({
     id: "t3_open_bracket",
     output: "[",
     expression: OPEN_BRACKET_EXPR,
@@ -132,8 +136,8 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: ["char_f", "char_i", "char_l"],
     description: '"function fill(){...}"[18] — open bracket',
-  },
-  {
+  }),
+  t3({
     id: "t3_close_bracket",
     output: "]",
     expression: CLOSE_BRACKET_EXPR,
@@ -142,8 +146,8 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: ["char_f", "char_i", "char_l"],
     description: '"function fill(){...}"[30] — close bracket',
-  },
-  {
+  }),
+  t3({
     id: "t3_period",
     output: ".",
     expression: PERIOD_EXPR,
@@ -152,7 +156,7 @@ const TIER3: Pattern[] = [
     trapFor: [],
     requires: [],
     description: '(0.1+"")[1] — period via float',
-  },
+  }),
 ];
 
 export default TIER3;

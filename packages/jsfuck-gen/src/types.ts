@@ -6,6 +6,7 @@ export type Pattern = {
   id: string;
   output: string;
   expression: string;
+  alternates: string[];
   kind: PatternKind;
   tags: string[];
   trapFor: string[];

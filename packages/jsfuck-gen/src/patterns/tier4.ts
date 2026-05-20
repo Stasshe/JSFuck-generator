@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { CONSTR_KEY, FUNC_CTOR, unescapeCharExpr } from "./builder.js";
+import { CONSTR_KEY, FUNC_CTOR, generateAlternates, unescapeCharExpr } from "./builder.js";
 
 // Tier 4: difficulty 3.5~5.0
 // escape/unescape based character access for remaining ASCII chars
@@ -56,6 +56,7 @@ function makeUnescape(
     id,
     output,
     expression: expr,
+    alternates: generateAlternates(expr),
     kind: "jsfuck",
     tags: ["tier4", "unescape"],
     trapFor: [],
