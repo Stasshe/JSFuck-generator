@@ -1,1 +1,0 @@
-# JSFuck-generator

@@ -1,0 +1,96 @@
+.
+├── CLAUDE.md
+├── README.md
+├── SPECIFICATION.md
+├── TODO.md
+├── ai-docs
+│   └── IMPLEMENTATION_DIRECTIVES.md
+├── apps
+│   └── web
+│       ├── next-env.d.ts
+│       ├── next.config.mjs
+│       ├── package.json
+│       ├── postcss.config.mjs
+│       ├── src
+│       │   ├── app
+│       │   │   ├── globals.css
+│       │   │   ├── layout.tsx
+│       │   │   └── page.tsx
+│       │   ├── components
+│       │   │   ├── debug-sidebar.tsx
+│       │   │   ├── editor-pane.tsx
+│       │   │   ├── io-panels.tsx
+│       │   │   └── loading-screen.tsx
+│       │   ├── hooks
+│       │   │   └── use-playground-session.ts
+│       │   └── lib
+│       │       ├── display.ts
+│       │       ├── editor.ts
+│       │       └── state.ts
+│       ├── tailwind.config.ts
+│       ├── tsconfig.json
+│       └── tsconfig.tsbuildinfo
+├── biome.json
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── readme-assets
+│   └── web-app-screenshot1.png
+├── rollup.config.js
+├── src
+│   ├── compiler.ts
+│   ├── debugger
+│   │   └── session.ts
+│   ├── diagnostics.ts
+│   ├── index.ts
+│   ├── interpreter
+│   │   ├── evaluator.ts
+│   │   ├── index.ts
+│   │   └── runtime
+│   │       ├── core.ts
+│   │       ├── index.ts
+│   │       ├── support.ts
+│   │       └── type-support.ts
+│   ├── parser
+│   │   ├── base
+│   │   │   ├── core.ts
+│   │   │   ├── index.ts
+│   │   │   ├── support.ts
+│   │   │   └── type-support.ts
+│   │   ├── expression.ts
+│   │   ├── index.ts
+│   │   └── lexer.ts
+│   ├── preprocessor.ts
+│   ├── runtime
+│   │   ├── errors.ts
+│   │   └── value.ts
+│   ├── semantic
+│   │   └── validator.ts
+│   └── types.ts
+├── tests
+│   ├── 01-basics.test.ts
+│   ├── 02-control-flow.test.ts
+│   ├── 03-functions.test.ts
+│   ├── 04-arrays.test.ts
+│   ├── 05-vectors.test.ts
+│   ├── 06-errors.test.ts
+│   ├── 07-edge-cases.test.ts
+│   ├── 08-debug.test.ts
+│   ├── 09-semantics-and-builtins.test.ts
+│   ├── 10-pointers-and-references.test.ts
+│   ├── 11-sample-programs.test.ts
+│   └── test-helper.ts
+├── tree.sh
+├── tree.txt
+├── tsconfig.json
+└── vitest.config.ts
+
+19 directories, 67 files
+
+src/*.ts, *.tsx の統計:
+合計行数: 8063
+合計文字数: 234650
+合計ファイルサイズ(bytes): 234650
+
+開発環境の容量:
+1.3G	.
