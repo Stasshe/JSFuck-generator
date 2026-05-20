@@ -1,4 +1,5 @@
 import type { Pattern } from "../types.js";
+import { AT_FN_STR, AT_KEY, ENTRIES_ITER_STR } from "./builder.js";
 
 // Tier 1: difficulty 1.0~1.5
 // Characters from: false/true/undefined/NaN/Infinity/digit-arithmetic
@@ -155,6 +156,7 @@ const TIER1: Pattern[] = [
     id: "char_y",
     output: "y",
     expression: "(1/0+[])[7]",
+    alternates: [`((+{}+[])+(1/0+[]))[10]`],
     kind: "jsfuck",
     tags: ["tier1", "from_infinity"],
     trapFor: [],
@@ -278,6 +280,7 @@ const TIER1: Pattern[] = [
     id: "char_space",
     output: " ",
     expression: "([]+{})[7]",
+    alternates: [`${ENTRIES_ITER_STR}[7]`],
     kind: "jsfuck",
     tags: ["tier1", "symbol"],
     trapFor: [],
@@ -291,6 +294,7 @@ const TIER1: Pattern[] = [
     id: "char_c",
     output: "c",
     expression: "([][(![]+[])[+[]]+([][+[]]+[])[5]+(![]+[])[2]+(![]+[])[2]]+[])[3]",
+    alternates: [`${AT_FN_STR}[3]`],
     kind: "jsfuck",
     tags: ["tier1", "from_fill_fn"],
     trapFor: [],
@@ -301,6 +305,7 @@ const TIER1: Pattern[] = [
     id: "char_o",
     output: "o",
     expression: "([][(![]+[])[+[]]+([][+[]]+[])[5]+(![]+[])[2]+(![]+[])[2]]+[])[6]",
+    alternates: [`(!![]+[]+[][${AT_KEY}])[10]`],
     kind: "jsfuck",
     tags: ["tier1", "from_fill_fn"],
     trapFor: [],

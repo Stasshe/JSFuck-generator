@@ -67,23 +67,43 @@ const _i = `([][+[]]+[])[5]`; // i
 const _l = `(![]+[])[2]`; // l
 export const FILL_KEY = `${_f}+${_i}+${_l}+${_l}`;
 
+// Tier-1 primitive char expressions (used to build keys)
+const _a = `(![]+[])[1]`; // a
+const _e = `(![]+[])[4]`; // e
+const _n = `([][+[]]+[])[1]`; // n
+const _r = `(!![]+[])[1]`; // r
+const _s = `(![]+[])[3]`; // s
+const _t = `(!![]+[])[+[]]`; // t
+const _u = `(!![]+[])[2]`; // u
+
+// "at" key: a+t
+export const AT_KEY = `${_a}+${_t}`;
+
+// "entries" key: e+n+t+r+i+e+s
+export const ENTRIES_KEY = `${_e}+${_n}+${_t}+${_r}+${_i}+${_e}+${_s}`;
+
 // "function fill() { [native code] }"
 export const FILL_FN_STR = `([][${FILL_KEY}]+[])`;
 // Indices: f(0)u(1)n(2)c(3)t(4)i(5)o(6)n(7) (8)f(9)i(10)l(11)l(12)((13))(14) (15){(16) (17)[(18)n(19)a(20)t(21)i(22)v(23)e(24) (25)c(26)o(27)d(28)e(29)](30) (31)}(32)
+
+// "function at() { [native code] }"
+// Indices: f(0)u(1)n(2)c(3)t(4)i(5)o(6)n(7) (8)a(9)t(10)((11))(12) (13){(14) (15)[(16)n(17)a(18)t(19)i(20)v(21)e(22) (23)c(24)o(25)d(26)e(27)](28) (29)}(30)
+export const AT_FN_STR = `([][${AT_KEY}]+[])`;
+
+// "[object Array Iterator]"
+// Indices: [(0)o(1)b(2)j(3)e(4)c(5)t(6) (7)A(8)r(9)r(10)a(11)y(12) (13)I(14)t(15)e(16)r(17)a(18)t(19)o(20)r(21)](22)
+export const ENTRIES_ITER_STR = `([][${ENTRIES_KEY}]()+[])`;
 
 // Bootstrap chars needed to build "constructor"
 export const _c = `${FILL_FN_STR}[3]`; // c
 export const _o = `${FILL_FN_STR}[6]`; // o
 
-// All tier-1 chars used in "constructor"
-const _n = `([][+[]]+[])[1]`; // n
-const _s = `(![]+[])[3]`; // s
-const _t = `(!![]+[])[+[]]`; // t
-const _r = `(!![]+[])[1]`; // r
-const _u = `(!![]+[])[2]`; // u
-
 // "constructor" key expression
 export const CONSTR_KEY = `${_c}+${_o}+${_n}+${_s}+${_t}+${_r}+${_u}+${_c}+${_t}+${_o}+${_r}`;
+
+// "function Number() { [native code] }"
+// Indices: f(0)u(1)n(2)c(3)t(4)i(5)o(6)n(7) (8)N(9)u(10)m(11)b(12)e(13)r(14)
+export const NUM_CTOR_FN_STR = `(""+((+[])[${CONSTR_KEY}]))`;
 
 // "function String() { [native code] }"
 export const STR_CTOR_FN_STR = `(""+([]+[])[${CONSTR_KEY}])`;

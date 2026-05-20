@@ -7,7 +7,9 @@ import TIER3 from "./tier3.js";
 import TIER4 from "./tier4.js";
 
 function withAlternates(p: Pattern): Pattern {
-  return { ...p, alternates: p.alternates ?? generateAlternates(p.expression) };
+  const manual = p.alternates ?? [];
+  const auto = generateAlternates(p.expression);
+  return { ...p, alternates: [...new Set([...manual, ...auto])] };
 }
 
 const ALL_PATTERNS: Pattern[] = [...TIER1, ...TIER2, ...TIER3, ...TIER4].map(withAlternates);

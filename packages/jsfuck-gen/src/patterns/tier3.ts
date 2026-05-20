@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { CONSTR_KEY, FILL_FN_STR, FILL_KEY, FUNC_CTOR } from "./builder.js";
+import { AT_FN_STR, CONSTR_KEY, ENTRIES_ITER_STR, FILL_FN_STR, FILL_KEY, FUNC_CTOR, NAN_STR } from "./builder.js";
 
 // Tier 3: difficulty 2.5~3.5
 // Uppercase letters via constructor function strings
@@ -57,6 +57,7 @@ const TIER3: Pattern[] = [
     id: "t3_A_upper",
     output: "A",
     expression: A_UPPER_EXPR,
+    alternates: [`(${NAN_STR}+${ENTRIES_ITER_STR})[11]`],
     kind: "jsfuck",
     tags: ["tier3", "uppercase", "from_constructor"],
     trapFor: ["char_a"],
@@ -87,6 +88,7 @@ const TIER3: Pattern[] = [
     id: "t3_open_paren",
     output: "(",
     expression: OPEN_PAREN_EXPR,
+    alternates: [`${AT_FN_STR}[11]`],
     kind: "jsfuck",
     tags: ["tier3", "symbol", "from_fill_fn"],
     trapFor: [],
@@ -97,6 +99,7 @@ const TIER3: Pattern[] = [
     id: "t3_close_paren",
     output: ")",
     expression: CLOSE_PAREN_EXPR,
+    alternates: [`${AT_FN_STR}[12]`],
     kind: "jsfuck",
     tags: ["tier3", "symbol", "from_fill_fn"],
     trapFor: [],
@@ -107,6 +110,7 @@ const TIER3: Pattern[] = [
     id: "t3_open_brace",
     output: "{",
     expression: OPEN_BRACE_EXPR,
+    alternates: [`${AT_FN_STR}[14]`],
     kind: "jsfuck",
     tags: ["tier3", "symbol", "from_fill_fn"],
     trapFor: [],
@@ -117,6 +121,7 @@ const TIER3: Pattern[] = [
     id: "t3_close_brace",
     output: "}",
     expression: CLOSE_BRACE_EXPR,
+    alternates: [`${AT_FN_STR}[30]`],
     kind: "jsfuck",
     tags: ["tier3", "symbol", "from_fill_fn"],
     trapFor: [],
@@ -127,6 +132,7 @@ const TIER3: Pattern[] = [
     id: "t3_open_bracket",
     output: "[",
     expression: OPEN_BRACKET_EXPR,
+    alternates: [`${AT_FN_STR}[16]`, `${ENTRIES_ITER_STR}[+[]]`],
     kind: "jsfuck",
     tags: ["tier3", "symbol", "from_fill_fn"],
     trapFor: [],
@@ -137,6 +143,7 @@ const TIER3: Pattern[] = [
     id: "t3_close_bracket",
     output: "]",
     expression: CLOSE_BRACKET_EXPR,
+    alternates: [`${AT_FN_STR}[28]`, `${ENTRIES_ITER_STR}[22]`],
     kind: "jsfuck",
     tags: ["tier3", "symbol", "from_fill_fn"],
     trapFor: [],

@@ -1,5 +1,5 @@
 import type { Pattern } from "../types.js";
-import { _g, _S_upper, FILL_FN_STR, letterExpr, STR_CTOR_FN_STR } from "./builder.js";
+import { _g, _S_upper, ENTRIES_ITER_STR, FILL_FN_STR, letterExpr, NUM_CTOR_FN_STR, STR_CTOR_FN_STR } from "./builder.js";
 
 // Tier 2: difficulty 1.5~2.5
 // Lowercase letters not already covered by compact tier1 paths, via (n).toString(36)
@@ -31,11 +31,20 @@ const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 // generated output.
 const TIER1_CHARS = new Set(["a", "d", "e", "f", "i", "l", "n", "r", "s", "t", "u"]);
 
+// Alternates from JSFuck reference using different sources
+const JSFUCK_ALTERNATES: Partial<Record<string, string[]>> = {
+  b: [`${ENTRIES_ITER_STR}[2]`],   // "[object Array Iterator]"[2]
+  j: [`${ENTRIES_ITER_STR}[3]`],   // "[object Array Iterator]"[3]
+  m: [`${NUM_CTOR_FN_STR}[11]`],   // "function Number(){...}"[11]
+};
+
 function makeLetter(ch: string, n: number): Pattern {
+  const alts = JSFUCK_ALTERNATES[ch];
   return {
     id: `t2_${ch}`,
     output: ch,
     expression: letterExpr(n),
+    ...(alts !== undefined ? { alternates: alts } : {}),
     kind: "jsfuck",
     tags: ["tier2", "tostring36"],
     trapFor: [],
