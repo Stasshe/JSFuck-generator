@@ -1,5 +1,14 @@
 export { generate } from "./engine/generator.js";
-export { partDifficulty, patternDifficulty, patternTier } from "./difficulty.js";
+export {
+  DIFFICULTY_ATTEMPTS,
+  DIFFICULTY_TOLERANCE,
+  MAX_DIFFICULTY,
+  difficultyError,
+  isDifficultyWithinTolerance,
+  partDifficulty,
+  patternDifficulty,
+  patternTier,
+} from "./difficulty.js";
 export { getPatterns, getSiblings } from "./patterns/index.js";
 export { generateQuiz } from "./quiz.js";
 export type {

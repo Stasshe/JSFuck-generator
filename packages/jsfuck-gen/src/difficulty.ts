@@ -1,5 +1,9 @@
 import type { GeneratedPart, Pattern } from "./types.js";
 
+export const MAX_DIFFICULTY = 20;
+export const DIFFICULTY_TOLERANCE = 1;
+export const DIFFICULTY_ATTEMPTS = 10;
+
 export function patternTier(pattern: Pattern): number {
   if (pattern.kind === "literal") return 5;
 
@@ -17,4 +21,15 @@ export function patternDifficulty(pattern: Pattern): number {
 
 export function partDifficulty(part: GeneratedPart): number {
   return patternTier(part.pattern) * part.segment.length;
+}
+
+export function difficultyError(actual: number, target: number): number {
+  const below = Math.max(0, target - DIFFICULTY_TOLERANCE - actual);
+  const above =
+    target >= MAX_DIFFICULTY ? 0 : Math.max(0, actual - target - DIFFICULTY_TOLERANCE);
+  return below + above;
+}
+
+export function isDifficultyWithinTolerance(actual: number, target: number): boolean {
+  return difficultyError(actual, target) === 0;
 }

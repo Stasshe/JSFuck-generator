@@ -1,10 +1,11 @@
 import { generate } from "./engine/generator.js";
+import {
+  DIFFICULTY_ATTEMPTS,
+  difficultyError,
+  isDifficultyWithinTolerance,
+} from "./difficulty.js";
 import { getPatterns } from "./patterns/index.js";
-import type { GeneratorConfig, QuizConfig, QuizResult } from "./types.js";
-
-const MAX_QUIZ_ATTEMPTS = 10;
-const MAX_DIFFICULTY = 20;
-const DIFFICULTY_TOLERANCE = 1;
+import type { GeneratorConfig, QuizQuestion, QuizConfig, QuizResult } from "./types.js";
 
 function lengthRange(difficulty: number): [number, number] {
   if (difficulty <= 2.0) return [1, 2];
@@ -24,7 +25,6 @@ function buildQuizString(
   rng: () => number,
 ): string {
   const filter = {
-    difficulty: { max: difficulty },
     ...(allowLiteral ? {} : { kind: "jsfuck" as const }),
   };
   const candidates = getPatterns(filter).filter((p) => p.output.length === 1 && p.kind !== "literal");
@@ -49,32 +49,45 @@ export function generateQuiz(config: QuizConfig): QuizResult {
     allowLiteral: config.allowLiteral,
     rng,
   };
+  let best: QuizQuestion | null = null;
+  let bestError = Infinity;
 
-  for (let attempt = 0; attempt < MAX_QUIZ_ATTEMPTS; attempt++) {
+  for (let attempt = 0; attempt < DIFFICULTY_ATTEMPTS; attempt++) {
     const quizStr = buildQuizString(targetLen, config.difficulty, config.allowLiteral, rng);
     const result = generate(quizStr, genConfig);
 
     if (!result.ok) continue;
 
-    const belowTarget = result.actualDifficulty < config.difficulty - DIFFICULTY_TOLERANCE;
-    const aboveTarget =
-      config.difficulty < MAX_DIFFICULTY &&
-      result.actualDifficulty > config.difficulty + DIFFICULTY_TOLERANCE;
-    if (belowTarget || aboveTarget) continue;
+    const question = {
+      expression: result.expression,
+      answer: quizStr,
+      actualDifficulty: result.actualDifficulty,
+      parts: result.parts,
+    };
+    const error = difficultyError(result.actualDifficulty, config.difficulty);
 
+    if (isDifficultyWithinTolerance(result.actualDifficulty, config.difficulty)) {
+      return {
+        ok: true,
+        question,
+      };
+    }
+
+    if (error < bestError) {
+      best = question;
+      bestError = error;
+    }
+  }
+
+  if (best !== null) {
     return {
       ok: true,
-      question: {
-        expression: result.expression,
-        answer: quizStr,
-        actualDifficulty: result.actualDifficulty,
-        parts: result.parts,
-      },
+      question: best,
     };
   }
 
   return {
     ok: false,
-    reason: `Could not generate quiz within ${MAX_QUIZ_ATTEMPTS} attempts for difficulty ${config.difficulty}`,
+    reason: `Could not generate quiz for difficulty ${config.difficulty}`,
   };
 }

@@ -28,17 +28,31 @@ describe("generate()", () => {
     }
   });
 
-  it("returns failure for unsupported chars when allowLiteral:false and difficulty:1", () => {
+  it("allows candidates within upward difficulty tolerance", () => {
     const config: GeneratorConfig = {
       difficulty: 1.0,
       allowLiteral: false,
     };
-    // 'z' is tier2 (difficulty 2.0), won't be reachable at difficulty 1.0
+    // 'z' is tier2 (difficulty 2.0), reachable within the +1 tolerance.
     const result = generate("z", config);
-    expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.reason).toBe("unsupported_chars");
-      expect(result.unsupportedChars).toContain("z");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.actualDifficulty).toBe(2);
+    }
+  });
+
+  it("returns the closest available difficulty instead of unsupported for harder chars", () => {
+    const result = generate("(", {
+      difficulty: 1.0,
+      allowLiteral: true,
+      rng: () => 0,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.actualDifficulty).toBe(3);
+      // biome-ignore lint/security/noGlobalEval: intentional generated expression evaluation test
+      expect(String(eval(result.expression))).toBe("(");
     }
   });
 

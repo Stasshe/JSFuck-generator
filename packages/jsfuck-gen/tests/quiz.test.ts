@@ -38,6 +38,20 @@ describe("generateQuiz()", () => {
     }
   });
 
+  it("returns the closest difficulty after attempts when none are within tolerance", () => {
+    const result = generateQuiz({
+      difficulty: 10,
+      allowLiteral: false,
+      length: 1,
+      rng: () => 0,
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.question.actualDifficulty).toBeLessThan(9);
+    }
+  });
+
   it("expression evaluates to answer", () => {
     const config: QuizConfig = {
       difficulty: 1.5,

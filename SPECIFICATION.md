@@ -55,13 +55,13 @@ type Pattern = {
 }
 
 type GeneratorConfig = {
-  difficulty: Difficulty
+  difficulty: Difficulty       // 目標値。厳密な上限ではない
   allowLiteral: boolean
   rng?: () => number      // 省略時は Math.random
 }
 
 type QuizConfig = {
-  difficulty: Difficulty
+  difficulty: Difficulty       // 目標値。厳密な上限ではない
   allowLiteral: boolean
   length?: number         // 省略時は difficulty から決定
   rng?: () => number
@@ -77,7 +77,7 @@ type GenerateSuccess = {
   output: string
   expression: string
   parts: GeneratedPart[]
-  actualDifficulty: Difficulty   // tier * length の合計
+  actualDifficulty: Difficulty   // tier * length の合計。目標値に最も近い採用結果
 }
 
 type GenerateFailure = {
@@ -165,6 +165,24 @@ vitestで以下を保証する。
 
 入力文字列 `s`（長さ `n`）に対して、セグメンテーションを動的計画法で求める。まず最短コストを前向き・後ろ向きに計算し、復元時に「最短 + 予算」内へ収まる候補から乱択する。これにより、出力は短く保ちつつ、同じ入力でも複数の答えが出る。
 
+`difficulty` は候補の絶対上限ではなく目標値として扱う。生成は最大 10 attempts 行い、`actualDifficulty` が許容誤差内に入った結果を採用する。10 attempts で許容誤差内の結果がなければ、その中で誤差が最小の結果を成功として返す。
+
+```
+MAX_DIFFICULTY = 20
+DIFFICULTY_TOLERANCE = 1
+DIFFICULTY_ATTEMPTS = 10
+
+difficultyError(actual, target):
+  below = max(0, target - DIFFICULTY_TOLERANCE - actual)
+  above =
+    target >= MAX_DIFFICULTY
+      ? 0
+      : max(0, actual - target - DIFFICULTY_TOLERANCE)
+  return below + above
+```
+
+`difficulty = MAX_DIFFICULTY` のときは、+方向の誤差を無限に許容する。つまり上に外れた結果は difficulty error 0 として扱う。
+
 ```
 prefixCost[i] = s[0..i) を表現する最小式長
 suffixCost[i] = s[i..n) を表現する最小式長
@@ -173,7 +191,6 @@ suffixCost[n] = 0
 rawCandidates =
   patterns
     .filter(p => p.output === segment)
-    .filter(p => patternDifficulty(p) <= config.difficulty)
     .filter(p => config.allowLiteral || p.kind !== "literal")
 
 minLength = min(rawCandidates.map(p => p.expression.length))
@@ -203,7 +220,6 @@ MAX_SEG = 8   // セグメント長の上限。辞書の最大output長に合わ
 candidates =
   patterns
     .filter(p => p.output === segment)
-    .filter(p => patternDifficulty(p) <= config.difficulty)
     .filter(p => config.allowLiteral || p.kind !== "literal")
 ```
 
@@ -263,16 +279,15 @@ actualDifficulty = sum(partDifficulty(part))
 
 ### 5.2 クイズ品質チェック
 
-Quiz生成時、`actualDifficulty` と target difficulty の差分が許容誤差内であることを確認する。
+Quiz生成時、`actualDifficulty` と target difficulty の差分が許容誤差内であることを確認する。許容誤差内の結果が 10 attempts で得られない場合は、attempts の中で `difficultyError` が最小のものを返す。
 
 ```
-abs(actualDifficulty - targetDifficulty) <= DIFFICULTY_TOLERANCE
-DIFFICULTY_TOLERANCE = 1
+difficultyError(actualDifficulty, targetDifficulty) === 0
 ```
 
 ただし `targetDifficulty` が最大値（20）の場合、上方向の誤差は無制限に許容する。下方向は通常どおり `DIFFICULTY_TOLERANCE` を適用する。
 
-収まらない場合は再生成する。最大試行回数は `MAX_QUIZ_ATTEMPTS = 10`。超過した場合は `QuizResult.ok: false` を返す。
+収まらない場合は再生成する。最大試行回数は `DIFFICULTY_ATTEMPTS = 10`。超過した場合でも、成功した attempt があれば `difficultyError` が最小の `QuizResult.ok: true` を返す。成功 attempt がひとつもない場合だけ `QuizResult.ok: false` を返す。
 
 ---
 
