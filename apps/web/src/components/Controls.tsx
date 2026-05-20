@@ -19,8 +19,8 @@ export function Controls({ settings, onChange, children }: Props) {
         <input
           type="range"
           min="1"
-          max="4"
-          step="1"
+          max="20"
+          step="0.5"
           value={settings.difficulty}
           onChange={(event) => onChange({ ...settings, difficulty: Number(event.target.value) })}
           className="accent-(--accent)"
