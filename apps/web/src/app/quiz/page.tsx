@@ -8,14 +8,14 @@ import { ResultStats } from "@/components/ResultStats";
 
 type Settings = {
   difficulty: number;
-  allowLiteral: boolean;
+  strict: boolean;
 };
 
 type AnswerState = "idle" | "correct" | "incorrect";
 
 const initialSettings: Settings = {
   difficulty: 2,
-  allowLiteral: false,
+  strict: true,
 };
 
 export default function QuizPage() {

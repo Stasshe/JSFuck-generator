@@ -86,7 +86,7 @@ export default function PatternsPage() {
           >
             <option value="all">all</option>
             <option value="jsfuck">jsfuck</option>
-            <option value="literal">literal</option>
+            <option value="subexpr">subexpr</option>
           </select>
         </label>
       </section>
@@ -102,8 +102,7 @@ export default function PatternsPage() {
               <th className="px-3 py-3">tier</th>
               <th className="px-3 py-3">difficulty</th>
               <th className="px-3 py-3">tags</th>
-              <th className="px-3 py-3">trapFor</th>
-              <th className="px-3 py-3">requires</th>
+              <th className="px-3 py-3">deps</th>
               <th className="px-3 py-3">description</th>
             </tr>
           </thead>
@@ -130,8 +129,7 @@ export default function PatternsPage() {
                   </td>
                   <td className="px-3 py-3 align-top">{difficulty}</td>
                   <td className="px-3 py-3 align-top">{pattern.tags.join(", ") || "-"}</td>
-                  <td className="px-3 py-3 align-top">{pattern.trapFor.join(", ") || "-"}</td>
-                  <td className="px-3 py-3 align-top">{pattern.requires.join(", ") || "-"}</td>
+                  <td className="px-3 py-3 align-top">{(pattern.deps ?? []).join(", ") || "-"}</td>
                   <td className="min-w-56 px-3 py-3 align-top text-(--muted)">
                     {pattern.description ?? "-"}
                     {warning ? <span className="ml-2 font-medium text-(--warn)">混同注意</span> : null}

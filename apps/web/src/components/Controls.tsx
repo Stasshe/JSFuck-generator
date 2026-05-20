@@ -2,7 +2,7 @@
 
 type GeneratorSettings = {
   difficulty: number;
-  allowLiteral: boolean;
+  strict: boolean;
 };
 
 type Props = {
@@ -30,11 +30,11 @@ export function Controls({ settings, onChange, children }: Props) {
       <label className="flex min-h-16 items-center gap-3 rounded-md border border-(--line) px-3">
         <input
           type="checkbox"
-          checked={settings.allowLiteral}
-          onChange={(event) => onChange({ ...settings, allowLiteral: event.target.checked })}
+          checked={settings.strict}
+          onChange={(event) => onChange({ ...settings, strict: event.target.checked })}
           className="h-5 w-5 accent-(--accent)"
         />
-        <span className="text-sm font-medium">allow literal fallback</span>
+        <span className="text-sm font-medium">strict mode</span>
       </label>
 
       {children}

@@ -30,7 +30,7 @@ export default function HomePage() {
             JSFuck Quiz & Generator
           </h1>
           <p className="mt-3 max-w-2xl text-base leading-7 text-(--muted)">
-            難易度、選択戦略、literal fallback の有無を切り替えながら、生成結果と
+            難易度、選択戦略、strict mode の有無を切り替えながら、生成結果と
             パターン辞書を検証できます。
           </p>
         </div>

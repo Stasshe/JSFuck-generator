@@ -8,12 +8,12 @@ import { ResultStats } from "@/components/ResultStats";
 
 type Settings = {
   difficulty: number;
-  allowLiteral: boolean;
+  strict: boolean;
 };
 
 const initialSettings: Settings = {
   difficulty: 3,
-  allowLiteral: true,
+  strict: false,
 };
 
 function isAscii(input: string): boolean {
