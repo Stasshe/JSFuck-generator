@@ -1,5 +1,4 @@
 import type { Derivation, GeneratorConfig, Pattern } from "../types.js";
-import { patternTier } from "../difficulty.js";
 
 // @{role} プレースホルダーを正規表現で抽出
 const PLACEHOLDER_RE = /@\{([^}]+)\}/g;
@@ -25,6 +24,25 @@ export function substituteTemplate(
   });
 }
 
+export function expressionForConfig(pattern: Pattern, config: GeneratorConfig): string {
+  return config.strict ? (pattern.strictExpression ?? pattern.expression) : pattern.expression;
+}
+
+export function alternatesForConfig(pattern: Pattern, config: GeneratorConfig): string[] {
+  return config.strict
+    ? (pattern.strictAlternates ?? pattern.alternates ?? [])
+    : (pattern.alternates ?? []);
+}
+
+export function patternForConfig(pattern: Pattern, config: GeneratorConfig): Pattern {
+  if (!config.strict) return pattern;
+  return {
+    ...pattern,
+    expression: expressionForConfig(pattern, config),
+    alternates: alternatesForConfig(pattern, config),
+  };
+}
+
 // 指定 role を持つパターン候補を返す
 // deps の解決では difficulty フィルタを適用しない:
 // 親パターンが選ばれた時点でその deps は利用可能であるべきため
@@ -33,11 +51,13 @@ export function candidatesForRole(
   allPatterns: Pattern[],
   config: GeneratorConfig,
 ): Pattern[] {
-  return allPatterns.filter((p) => {
-    if (p.role !== role) return false;
-    if (config.strict && !p.pure) return false;
-    return true;
-  });
+  return allPatterns
+    .filter((p) => {
+      if (p.role !== role) return false;
+      if (config.strict && !p.pure) return false;
+      return true;
+    })
+    .map((p) => patternForConfig(p, config));
 }
 
 // 候補から推定式長で boundedVarietyPool 相当のものを返す
@@ -58,13 +78,14 @@ export function resolvePattern(
   config: GeneratorConfig,
   rng: () => number,
 ): Derivation {
-  const depRoles = extractDeps(pattern.expression);
+  const template = expressionForConfig(pattern, config);
+  const depRoles = extractDeps(template);
 
   if (depRoles.length === 0) {
     // プレースホルダーなし: そのまま返す
     return {
       patternId: pattern.id,
-      expression: pattern.expression,
+      expression: template,
       description: pattern.description,
       deps: {},
     };
@@ -84,7 +105,7 @@ export function resolvePattern(
     resolvedDeps[role] = resolvePattern(chosen, allPatterns, config, rng);
   }
 
-  const expression = substituteTemplate(pattern.expression, resolvedDeps);
+  const expression = substituteTemplate(template, resolvedDeps);
 
   return {
     patternId: pattern.id,
@@ -99,9 +120,11 @@ export function resolvePattern(
 export function estimatedExprLength(
   pattern: Pattern,
   minLenByRole: Map<string, number>,
+  config?: GeneratorConfig,
 ): number {
-  let len = pattern.expression.length;
-  for (const match of pattern.expression.matchAll(PLACEHOLDER_RE)) {
+  const expression = config ? expressionForConfig(pattern, config) : pattern.expression;
+  let len = expression.length;
+  for (const match of expression.matchAll(PLACEHOLDER_RE)) {
     const role = match[1];
     if (role === undefined) continue;
     const placeholder = match[0].length; // "@{role}".length
@@ -127,7 +150,7 @@ export function buildMinLenByRole(
       if (config.strict && !p.pure) continue;
       // subexpr パターンは difficulty に関係なく minLen 計算に含める
 
-      const est = estimatedExprLength(p, minLen);
+      const est = estimatedExprLength(p, minLen, config);
       const current = minLen.get(p.role);
       if (current === undefined || est < current) {
         minLen.set(p.role, est);

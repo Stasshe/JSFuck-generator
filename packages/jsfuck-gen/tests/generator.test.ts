@@ -92,6 +92,17 @@ describe("generate()", () => {
       expect(String(eval(result.expression))).toBe("fa");
     }
   });
+
+  it("rewrites numeric indexes in strict mode", () => {
+    const result = generate("e", { difficulty: 1.0, strict: true, rng: () => 0 });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.expression).not.toMatch(/\[\d+\]/);
+      expect(result.expression).toContain("!![]");
+      // biome-ignore lint/security/noGlobalEval: intentional generated expression evaluation test
+      expect(String(eval(result.expression))).toBe("e");
+    }
+  });
 });
 
 describe("random selection", () => {

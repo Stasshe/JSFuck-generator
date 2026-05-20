@@ -1,3 +1,5 @@
+import type { Pattern } from "../types.js";
+
 // JSFuck expression utilities
 
 const PRIMITIVE_SOURCE_ALTERNATES: Record<string, string[]> = {
@@ -55,4 +57,22 @@ export function numExpr(n: number): string {
   if (n === 0) return "+[]";
   if (n === 1) return "+!![]";
   return Array(n).fill("(!![])").join("+");
+}
+
+export function strictExpression(expr: string): string {
+  return expr.replace(/\[(\d+)\]/g, (_, rawIndex: string) => `[${numExpr(Number(rawIndex))}]`);
+}
+
+export function withStrictExpressions(pattern: Pattern): Pattern {
+  if (!pattern.pure) return pattern;
+
+  const strict = strictExpression(pattern.expression);
+  const strictAlternates = pattern.alternates?.map(strictExpression);
+
+  const next: Pattern = {
+    ...pattern,
+    strictExpression: strict,
+  };
+  if (strictAlternates !== undefined) next.strictAlternates = strictAlternates;
+  return next;
 }

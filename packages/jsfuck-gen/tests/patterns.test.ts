@@ -56,6 +56,16 @@ describe("Pattern dictionary integrity", () => {
     }
   });
 
+  it("pure patterns expose strict expressions without numeric indexes", () => {
+    for (const p of ALL_PATTERNS.filter((pattern) => pattern.pure)) {
+      expect(p.strictExpression, `${p.id} must have a strict expression`).toBeDefined();
+      expect(p.strictExpression, `${p.id} strict expression must not use numeric indexes`).not.toMatch(/\[\d+\]/);
+      for (const alternate of p.strictAlternates ?? []) {
+        expect(alternate, `${p.id} strict alternate must not use numeric indexes`).not.toMatch(/\[\d+\]/);
+      }
+    }
+  });
+
   it("covers all printable ASCII with at least one jsfuck pattern", () => {
     const covered = new Set(
       ALL_PATTERNS.filter((p) => p.kind === "jsfuck").map((p) => p.output),

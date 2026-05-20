@@ -1,6 +1,6 @@
 import type { Pattern, PatternFilter } from "../types.js";
 import { patternDifficulty } from "../difficulty.js";
-import { generateAlternates } from "./builder.js";
+import { generateAlternates, withStrictExpressions } from "./builder.js";
 import TIER1 from "./tier1.js";
 import TIER2 from "./tier2.js";
 import TIER3 from "./tier3.js";
@@ -10,8 +10,8 @@ function withAlternates(p: Pattern): Pattern {
   const manual = p.alternates ?? [];
   const auto = generateAlternates(p.expression);
   const merged = [...new Set([...manual, ...auto])];
-  if (merged.length === 0) return p;
-  return { ...p, alternates: merged };
+  const withMerged: Pattern = merged.length === 0 ? p : { ...p, alternates: merged };
+  return withStrictExpressions(withMerged);
 }
 
 export const ALL_PATTERNS: Pattern[] = [

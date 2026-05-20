@@ -21,11 +21,15 @@ export type Pattern = {
   // JSFuck 式テンプレート。@{roleName} プレースホルダーを含んでよい
   expression: string;
 
+  // strict mode 用テンプレート。数値添字などを JSFuck 式へ展開した形式。
+  strictExpression?: string;
+
   // expression 内で参照している role 名の一覧（解決器が依存関係を辿る）
   deps?: string[];
 
   // 代替式テンプレート（同じ意味、異なる JSFuck 表現）
   alternates?: string[];
+  strictAlternates?: string[];
 
   // true = []()!+ のみ使用（strict mode で使用可）
   // false = '"5"' 等のリテラルショートカットを含む

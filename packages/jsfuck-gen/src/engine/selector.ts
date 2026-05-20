@@ -1,6 +1,6 @@
 import { patternTier } from "../difficulty.js";
 import type { GeneratorConfig, Pattern } from "../types.js";
-import { buildMinLenByRole, estimatedExprLength } from "./resolver.js";
+import { alternatesForConfig, buildMinLenByRole, estimatedExprLength, patternForConfig } from "./resolver.js";
 
 // DP のセグメント照合用: output が一致する jsfuck パターンを返す
 // subexpr パターンは含まない
@@ -10,16 +10,18 @@ export function candidatePatterns(
   config: GeneratorConfig,
   minLenByRole: Map<string, number>,
 ): Pattern[] {
-  const base = patterns.filter((p) => {
-    if (p.kind !== "jsfuck") return false;
-    if (p.output !== segment) return false;
-    if (config.strict && !p.pure) return false;
-    return patternTier(p) <= config.difficulty;
-  });
+  const base = patterns
+    .filter((p) => {
+      if (p.kind !== "jsfuck") return false;
+      if (p.output !== segment) return false;
+      if (config.strict && !p.pure) return false;
+      return patternTier(p) <= config.difficulty;
+    })
+    .map((p) => patternForConfig(p, config));
 
   // alternates を展開して variant パターンを追加
   const variants = base.flatMap((p) =>
-    (p.alternates ?? []).map((expr, i) => ({
+    alternatesForConfig(p, config).map((expr, i) => ({
       ...p,
       id: `${p.id}:alt_${i}`,
       expression: expr,
