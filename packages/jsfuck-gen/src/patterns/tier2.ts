@@ -2,7 +2,7 @@ import type { Pattern } from "../types.js";
 import { _g, _S_upper, FILL_FN_STR, letterExpr, STR_CTOR_FN_STR } from "./builder.js";
 
 // Tier 2: difficulty 1.5~2.5
-// All 26 lowercase letters via (n).toString(36)
+// Lowercase letters not already covered by compact tier1 paths, via (n).toString(36)
 // Prerequisite: c and o from fill fn string (tier1), then g from String ctor fn string
 
 // Bootstrap: 'g' from "function String() { [native code] }"[14]
@@ -26,13 +26,13 @@ const TIER2_REQUIRES = [
 // letter codes: a=10, b=11, ..., z=35
 const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 
-// Difficulty assignment: letters that overlap with tier1 get slightly higher difficulty
-// New-in-tier2 letters get lower difficulty (they're the point of this tier)
+// Do not register toString(36) alternates for chars that already have compact
+// tier1 expressions. Those alternates are valid JSFuck, but much too noisy for
+// generated output.
 const TIER1_CHARS = new Set(["a", "d", "e", "f", "i", "l", "n", "r", "s", "t", "u"]);
 
 function makeLetter(ch: string, n: number): Pattern {
   const expr = letterExpr(n);
-  const isNewChar = !TIER1_CHARS.has(ch);
   return {
     id: `t2_${ch}`,
     output: ch,
@@ -110,7 +110,10 @@ const TIER2: Pattern[] = [
   G_PATTERN,
   S_UPPER_PATTERN,
   V_PATTERN,
-  ...LETTERS.split("").map((ch, idx) => makeLetter(ch, idx + 10)),
+  ...LETTERS.split("")
+    .map((ch, idx) => [ch, idx + 10] as const)
+    .filter(([ch]) => !TIER1_CHARS.has(ch))
+    .map(([ch, n]) => makeLetter(ch, n)),
 ];
 
 export default TIER2;

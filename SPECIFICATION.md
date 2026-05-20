@@ -122,7 +122,9 @@ Tier 1
   取れる文字: a d e f i I l n N r s t u y 0~9
 
 Tier 2
-  toString(36) による小文字全26文字。
+  toString(36) による小文字。
+  ただし Tier 1 で短く取れる a d e f i l n r s t u は登録しない。
+  radix の 36 は JS の引数ToNumberに任せ、短い文字列式 `"36"` で渡す。
   前提: "fill" 経由で Function を取得し、"toString" 文字列を構築できること。
 
 Tier 3
@@ -161,20 +163,32 @@ vitestで以下を保証する。
 
 ### 4.1 セグメンテーションDP
 
-入力文字列 `s`（長さ `n`）に対して、セグメンテーションを動的計画法で求める。各セグメントの候補はランダムに選ぶ。
+入力文字列 `s`（長さ `n`）に対して、セグメンテーションを動的計画法で求める。各セグメントでは候補全体を見たうえで、極端に長い候補を除外し、残った候補に小さな乱数揺らぎを加えて選ぶ。
 
 ```
 dp[i] = s[0..i) を表現する最小式長
 dp[0] = 0
-dp[i] = min over j in [max(0, i-MAX_SEG), i) of:
-          dp[j] + selectedPattern.expression.length
+rawCandidates =
+  patterns
+    .filter(p => p.output === segment)
+    .filter(p => patternDifficulty(p) <= config.difficulty)
+    .filter(p => config.allowLiteral || p.kind !== "literal")
+
+minLength = min(rawCandidates.map(p => p.expression.length))
+maxLength = max(minLength + 24, ceil(minLength * 1.8))
+candidates = rawCandidates.filter(p => p.expression.length <= maxLength)
+
+score(p) = p.expression.length + rng() * 12
+
+dp[i] = min over j in [max(0, i-MAX_SEG), i), p in candidates(s[j..i)) of:
+          dp[j] + score(p)
 
 MAX_SEG = 8   // セグメント長の上限。辞書の最大output長に合わせる
 ```
 
 `choice[i] = { j, pattern }` を同時に記録し、復元時に `GeneratedPart[]` を構築する。
 
-### 4.2 パターン選択
+### 4.2 パターン候補
 
 各セグメントに対する候補フィルタリング：
 
@@ -186,12 +200,7 @@ candidates =
     .filter(p => config.allowLiteral || p.kind !== "literal")
 ```
 
-選択：
-
-```
-random:
-  candidates から一様ランダムに選ぶ。
-```
+候補が複数ある場合でも、式長が最短候補から大きく離れるものは生成時に使わない。これにより、高難易度で `toString(36)` などの長い別経路が解禁されても、既に短く表現できる文字が過剰に長い式へ置き換わることを防ぐ。
 
 ### 4.3 候補がない場合
 

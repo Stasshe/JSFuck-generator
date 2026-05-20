@@ -1,5 +1,5 @@
 import type { GeneratedPart, GeneratorConfig, Pattern } from "../types.js";
-import { selectPattern } from "./selector.js";
+import { boundedVarietyPool, candidatePatterns } from "./selector.js";
 
 const MAX_SEG = 8;
 
@@ -13,6 +13,7 @@ export function segmentDP(
   patterns: Pattern[],
   config: GeneratorConfig,
 ): GeneratedPart[] | null {
+  const rng = config.rng ?? Math.random;
   const n = input.length;
   const dp: number[] = new Array(n + 1).fill(Infinity);
   const choice: (Choice | null)[] = new Array(n + 1).fill(null);
@@ -21,17 +22,20 @@ export function segmentDP(
   for (let i = 1; i <= n; i++) {
     for (let j = Math.max(0, i - MAX_SEG); j < i; j++) {
       const segment = input.slice(j, i);
-      const selected = selectPattern(segment, patterns, config);
-      if (selected === null) continue;
+      const candidates = candidatePatterns(segment, patterns, config);
+      if (candidates.length === 0) continue;
 
       const previousCost = dp[j];
       const currentCost = dp[i];
       if (previousCost === undefined || currentCost === undefined) continue;
 
-      const cost = previousCost + selected.expression.length;
-      if (cost < currentCost) {
-        dp[i] = cost;
-        choice[i] = { j, pattern: selected };
+      const pool = boundedVarietyPool(candidates);
+      for (const selected of pool) {
+        const cost = previousCost + scorePattern(selected, rng);
+        if (cost < dp[i]!) {
+          dp[i] = cost;
+          choice[i] = { j, pattern: selected };
+        }
       }
     }
   }
@@ -49,4 +53,10 @@ export function segmentDP(
   }
   parts.reverse();
   return parts;
+}
+
+function scorePattern(pattern: Pattern, rng: () => number): number {
+  // Keep output compact, but add enough jitter that similarly priced patterns
+  // do not collapse to the same expression every time.
+  return pattern.expression.length + rng() * 12;
 }

@@ -91,14 +91,40 @@ describe("generate()", () => {
 });
 
 describe("random selection", () => {
-  it("uses rng to choose among candidates", () => {
-    const first = generate("a", { difficulty: 5.0, allowLiteral: true, rng: () => 0 });
-    const later = generate("a", { difficulty: 5.0, allowLiteral: true, rng: () => 0.99 });
+  it("uses rng to vary among compact candidates", () => {
+    const preferFalseString = (() => {
+      const values = [0, 0.99];
+      return () => values.shift() ?? 0;
+    })();
+    const preferNanString = (() => {
+      const values = [0.99, 0];
+      return () => values.shift() ?? 0;
+    })();
+
+    const first = generate("a", {
+      difficulty: 5.0,
+      allowLiteral: true,
+      rng: preferFalseString,
+    });
+    const later = generate("a", {
+      difficulty: 5.0,
+      allowLiteral: true,
+      rng: preferNanString,
+    });
 
     expect(first.ok).toBe(true);
     expect(later.ok).toBe(true);
     if (first.ok && later.ok) {
       expect(first.parts[0]?.pattern.id).not.toBe(later.parts[0]?.pattern.id);
+    }
+  });
+
+  it("defaults to bounded variety instead of very long overlapping candidates", () => {
+    const result = generate("a", { difficulty: 5.0, allowLiteral: true, rng: () => 0.99 });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.parts[0]?.pattern.id).not.toBe("t2_a");
     }
   });
 });

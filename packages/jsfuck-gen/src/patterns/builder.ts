@@ -51,8 +51,11 @@ export const _S_upper = `${STR_CTOR_FN_STR}[9]`; // S (uppercase)
 // "toString" key expression: t+o+S+t+r+i+n+g  (S is uppercase — camelCase method name)
 export const TOSTRING_KEY = `${_t}+${_o}+${_S_upper}+${_t}+${_r}+${_i}+${_n}+${_g}`;
 
-// Number 36 as JSFuck (for toString base)
-export const BASE36 = numExpr(36);
+// Number 36 as toString radix.
+// JS coerces the string argument to number, and digit literals 5-9 are already
+// accepted elsewhere in the dictionary, so keep this compact instead of
+// expanding it to 36 boolean additions.
+export const BASE36 = '"36"';
 
 // Letter via toString(36): n must be 10..35 for a..z
 export function letterExpr(n: number): string {
