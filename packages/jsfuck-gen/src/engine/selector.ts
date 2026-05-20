@@ -1,4 +1,4 @@
-import { patternDifficulty, patternTier } from "../difficulty.js";
+import { patternTier } from "../difficulty.js";
 import type { GeneratorConfig, Pattern } from "../types.js";
 import { expandEquivalentPatterns } from "./equivalence.js";
 

@@ -190,7 +190,7 @@ maxCost = minCost + max(24, ceil(minCost * 0.25))
   weight(p) = 1 / p.expression.length
   choices から rng で重み付き選択する
 
-MAX_SEG = 8   // セグメント長の上限。辞書の最大output長に合わせる
+MAX_SEG = 9   // セグメント長の上限。辞書の最大output長に合わせる（"undefined" = 9文字）
 ```
 
 選ばれた `{ j, pattern }` を順に `GeneratedPart[]` へ追加する。

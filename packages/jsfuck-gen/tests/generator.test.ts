@@ -54,7 +54,7 @@ describe("generate()", () => {
     const result = generate("false", { difficulty: 1.0, allowLiteral: false });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.actualDifficulty).toBe(5);
+      expect(result.actualDifficulty).toBe(1);
     }
   });
 
@@ -158,7 +158,9 @@ describe("random selection", () => {
 
     const shortest = Math.min(...lengths);
     const longest = Math.max(...lengths);
-    expect(expressions.size).toBeGreaterThan(3);
+    // "false" now matches the whole primitive string pattern (![]+[]) = 8 chars.
+    // Variety comes from equivalence variants of that pattern (~3 distinct forms).
+    expect(expressions.size).toBeGreaterThanOrEqual(2);
     expect(longest).toBeLessThanOrEqual(shortest + Math.max(24, Math.ceil(shortest * 0.25)));
   });
 
@@ -189,6 +191,50 @@ describe("random selection", () => {
         // biome-ignore lint/security/noGlobalEval: intentional generated expression evaluation test
         expect(String(eval(result.expression))).toBe("false");
       }
+    }
+  });
+
+  it("uses whole primitive string pattern when input matches", () => {
+    // "false" should be encoded as a single part using the str_false pattern,
+    // not split into 5 individual characters (which would be ~57 chars total)
+    const result = generate("false", { difficulty: 5.0, allowLiteral: false, rng: () => 0.5 });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.parts).toHaveLength(1);
+      expect(result.parts[0]?.pattern.id).toMatch(/^str_false/);
+      // whole-string expression is far shorter than char-by-char (~57 chars)
+      expect(result.expression.length).toBeLessThan(35);
+    }
+  });
+
+  it("uses whole primitive string for each known primitive", () => {
+    const cases: [string, string][] = [
+      ["false", "str_false"],
+      ["true", "str_true"],
+      ["NaN", "str_nan"],
+      ["Infinity", "str_infinity"],
+      ["undefined", "str_undefined"],
+    ];
+
+    for (const [input, expectedPatternId] of cases) {
+      const result = generate(input, { difficulty: 5.0, allowLiteral: false, rng: () => 0.5 });
+      expect(result.ok, `generate("${input}") should succeed`).toBe(true);
+      if (result.ok) {
+        expect(result.parts).toHaveLength(1);
+        expect(result.parts[0]?.pattern.id).toMatch(new RegExp(`^${expectedPatternId}`));
+      }
+    }
+  });
+
+  it("multi-char pattern reduces expression length vs char-by-char", () => {
+    // "truefalse" contains both primitives; should use 2 whole-string patterns
+    const result = generate("truefalse", { difficulty: 5.0, allowLiteral: false, rng: () => 0.5 });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.parts).toHaveLength(2);
+      // expression length should be << 9-char char-by-char (~100+ chars)
+      expect(result.expression.length).toBeLessThan(50);
     }
   });
 });

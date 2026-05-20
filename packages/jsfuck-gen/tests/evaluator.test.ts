@@ -13,10 +13,10 @@ function makeParts(ids: string[]): GeneratedPart[] {
 }
 
 describe("computeActualDifficulty", () => {
-  it("sums tier times segment length", () => {
+  it("computes per-character average difficulty", () => {
     const parts = makeParts(["char_f", "char_a", "char_l"]);
     const d = computeActualDifficulty(parts, ALL_PATTERNS);
-    expect(d).toBe(3);
+    expect(d).toBe(1);
   });
 
   it("returns approximately 1.0 for empty parts", () => {

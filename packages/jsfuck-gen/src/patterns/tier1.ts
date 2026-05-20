@@ -307,6 +307,59 @@ const TIER1: Pattern[] = [
     requires: ["char_f", "char_i", "char_l"],
     description: '"function fill(){[native code]}"[6] — o',
   },
+  // ===== primitive strings as whole =====
+  // These are much cheaper than char-by-char when the substring appears in input.
+  // e.g. "false" as (![]+[]) = 8 chars vs f+a+l+s+e = ~66 chars
+  {
+    id: "str_false",
+    output: "false",
+    expression: "(![]+[])",
+    kind: "jsfuck",
+    tags: ["tier1", "primitive_str"],
+    trapFor: [],
+    requires: [],
+    description: "false coerced to string",
+  },
+  {
+    id: "str_true",
+    output: "true",
+    expression: "(!![]+[])",
+    kind: "jsfuck",
+    tags: ["tier1", "primitive_str"],
+    trapFor: [],
+    requires: [],
+    description: "true coerced to string",
+  },
+  {
+    id: "str_nan",
+    output: "NaN",
+    expression: "(+{}+[])",
+    kind: "jsfuck",
+    tags: ["tier1", "primitive_str"],
+    trapFor: [],
+    requires: [],
+    description: "NaN coerced to string",
+  },
+  {
+    id: "str_infinity",
+    output: "Infinity",
+    expression: "(1/0+[])",
+    kind: "jsfuck",
+    tags: ["tier1", "primitive_str"],
+    trapFor: [],
+    requires: [],
+    description: "Infinity coerced to string",
+  },
+  {
+    id: "str_undefined",
+    output: "undefined",
+    expression: "([][+[]]+[])",
+    kind: "jsfuck",
+    tags: ["tier1", "primitive_str"],
+    trapFor: [],
+    requires: [],
+    description: "undefined coerced to string",
+  },
 ];
 
 export default TIER1;

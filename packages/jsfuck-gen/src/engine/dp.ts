@@ -1,7 +1,7 @@
 import type { GeneratedPart, GeneratorConfig, Pattern } from "../types.js";
 import { boundedVarietyPool, candidatePatterns } from "./selector.js";
 
-const MAX_SEG = 8;
+const MAX_SEG = 9; // matches longest primitive string output: "undefined" (9 chars)
 
 type Choice = {
   j: number;
